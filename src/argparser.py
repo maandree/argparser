@@ -202,7 +202,8 @@ class ArgParser():
         def unrecognised(arg):
             self.unrecognisedCount += 1
             if self.unrecognisedCount <= 5:
-                sys.stderr.write('%s: warning: unrecognised option %s\n' % (self.program, arg))
+                self.__print('%s: warning: unrecognised option %s' % (self.program, arg))
+                self.__out.flush()
             self.rc = False
         
         while len(queue) != 0:
