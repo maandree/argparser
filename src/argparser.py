@@ -188,9 +188,9 @@ class ArgParser():
         
         argqueue = []
         optqueue = []
-        deque = []
+        queue = []
         for arg in argv[1:]:
-            deque.append(arg)
+            queue.append(arg)
         
         dashed = False
         tmpdashed = False
@@ -205,9 +205,9 @@ class ArgParser():
                 sys.stderr.write('%s: warning: unrecognised option %s\n' % (self.program, arg))
             self.rc = False
         
-        while len(deque) != 0:
-            arg = deque[0]
-            deque = deque[1:]
+        while len(queue) != 0:
+            arg = queue[0]
+            queue = queue[1:]
             if (get > 0) and (dontget == 0):
                 get -= 1
                 argqueue.append(arg)
