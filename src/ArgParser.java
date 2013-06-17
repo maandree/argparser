@@ -472,8 +472,7 @@ public class ArgParser
 			for (String line : lines)
 			{    if (line.startsWith("PPid:"))
 			     {
-				 line = line.substring(5);
-				 line = line.replace('\t', ' ').replace('\n', ' ').replace(" ", "");
+				 line = line.substring(5).replace('\t', ' ').replace(" ", "");
 				 pid = Integer.parseInt(line);
 				 lvl -= 1;
 				 continue outer;
