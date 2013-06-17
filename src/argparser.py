@@ -118,7 +118,7 @@ class ArgParser():
         return None
     
     
-    def print(self, text = '', end = '\n'):
+    def __print(self, text = '', end = '\n'):
         '''
         Hack to enforce UTF-8 in output (in the future, if you see anypony not using utf-8 in
         programs by default, report them to Princess Celestia so she can banish them to the moon)
@@ -333,7 +333,8 @@ class ArgParser():
                     msg += ' %s' % opt[0]
                 else:
                     msg += ' %s(%s)' % opt
-            print(msg)
+            self.__print(msg)
+            self.__out.flush()
             if exit_value is not None:
                 sys.exit(exit_value)
             return False
@@ -354,7 +355,8 @@ class ArgParser():
                 msg = self.program + ': option used out of context: ' + opt
                 if opt != self.optmap[opt][0]:
                     msg += '(' + self.optmap[opt][0] + ')'
-                print(msg)
+                self.__print(msg)
+                self.__out.flush()
                 rc = False
         if (not rc) and (exit_value is not None):
             sys.exit(exit_value)
@@ -380,21 +382,21 @@ class ArgParser():
         '''
         Prints a colourful help message
         '''
-        self.print('\033[01m%s\033[21m %s %s' % (self.program, '-' if self.linuxvt else '—', self.__description))
-        self.print()
+        self.__print('\033[01m%s\033[21m %s %s' % (self.program, '-' if self.linuxvt else '—', self.__description))
+        self.__print()
         if self.__longdescription is not None:
-            self.print(self.__longdescription)
-        self.print()
+            self.__print(self.__longdescription)
+        self.__print()
         
-        self.print('\033[01mUSAGE:\033[21m', end='')
+        self.__print('\033[01mUSAGE:\033[21m', end='')
         first = True
         for line in self.__usage.split('\n'):
             if first:
                 first = False
             else:
-                self.print('    or', end='')
-            self.print('\t%s' % (line))
-        self.print()
+                self.__print('    or', end='')
+            self.__print('\t%s' % (line))
+        self.__print()
         
         maxfirstlen = []
         for opt in self.__options:
@@ -408,7 +410,7 @@ class ArgParser():
                 maxfirstlen.append(first)
         maxfirstlen = len(max(maxfirstlen, key = len))
         
-        self.print('\033[01mSYNOPSIS:\033[21m')
+        self.__print('\033[01mSYNOPSIS:\033[21m')
         (lines, lens) = ([], [])
         for opt in self.__options:
             opt_type = opt[0]
@@ -443,15 +445,15 @@ class ArgParser():
                 continue
             first = True
             colour = '36' if (index & 1) == 0 else '34'
-            self.print(lines[index].replace('%colour%', '\033[%s;01m' % (colour)), end=' ' * (col - lens[index]))
+            self.__print(lines[index].replace('%colour%', '\033[%s;01m' % (colour)), end=' ' * (col - lens[index]))
             for line in opt_help.split('\n'):
                 if first:
                     first = False
-                    self.print('%s' % (line), end='\033[00m\n')
+                    self.__print('%s' % (line), end='\033[00m\n')
                 else:
-                    self.print('%s\033[%sm%s\033[00m' % (' ' * col, colour, line))
+                    self.__print('%s\033[%sm%s\033[00m' % (' ' * col, colour, line))
             index += 1
         
-        self.print()
+        self.__print()
         self.__out.flush()
 
