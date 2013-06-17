@@ -348,16 +348,17 @@ class ArgParser():
         @param   exit_value:int?   The value to exit with on the check does not pass, `None` if not to exit
         @return  :bool             Whether only allowed options was used
         '''
+        rc = True
         for opt in self.opts:
             if (self.opts[opt] is not None) and (opt not in allowed):
                 msg = self.program + ': option used out of context: ' + opt
                 if opt != self.optmap[opt][0]:
                     msg += '(' + self.optmap[opt][0] + ')'
                 sys.stderr.write(msg + '\n')
-                if exit_value is not None:
-                    sys.exit(exit_value)
-                return False
-        return True
+                rc = False
+        if (not rc) and (exit_value is not None):
+            sys.exit(exit_value)
+        return rc
     
     
     def test_files(self, min = 0, max = None, exit_value = None):
