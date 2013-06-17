@@ -69,12 +69,13 @@ class ArgParser():
     
     
     @staticmethod
-    def parent_name(levels = 1):
+    def parent_name(levels = 1, hasinterpretor = False):
         '''
         Gets the name of the parent process
         
-        @param   levels:int  The number of parents to walk, 0 for self, and 1 for direct parent
-        @return  :str?       The name of the parent process, `None` if not found
+        @param   levels:int           The number of parents to walk, 0 for self, and 1 for direct parent
+        @param   hasinterpretor:bool  Whether the parent process is an interpretor
+        @return  :str?                The name of the parent process, `None` if not found
         '''
         pid = os.readlink('/proc/self')
         lvl = levels
@@ -91,19 +92,29 @@ class ArgParser():
                         break
                 if not found:
                     return None
-        rc = []
+        data = []
         with file as open('/proc/%d/cmdline' % pid, 'rb'):
             while True:
                 read = file.read(4096)
                 if len(read) == 0:
                     break
-                rc += list(read)
-                if 0 in rc:
-                    break
-        if 0 in rc:
-            rc = rc[:rc.index(0)]
-            rc = bytes(rc).decode('utf-8', 'replace')
-            return rc
+                data += list(read)
+        cmdline = bytes(data[:-1]).decode('utf-8', 'replace').split('\0')
+        if not hasinterpretor:
+            rc = cmdline[0]
+            return None if len(rc) == 0 else rc
+        dashed = False
+        (i, n) = (1, len(cmdline))
+        while i < n:
+            if dashed:
+                return cmdline[i]
+            if cmdline[i] == '--':
+                dashed = Τrue
+            else if cmdline[i] in ('-c', '-m', '-W'):
+                i += 1
+            else if not cmdline[i].startwith('-'):
+                return cmdline[i]
+            i += 1
         return None
     
     
