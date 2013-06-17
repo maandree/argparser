@@ -425,13 +425,13 @@ class ArgParser():
                 continue
             first = True
             colour = '36' if (index & 1) == 0 else '34'
-            self.print(lines[index].replace('%colour%', '\033[%s;1m' % (colour)), end=' ' * (col - lens[index]))
+            self.print(lines[index].replace('%colour%', '\033[%s;01m' % (colour)), end=' ' * (col - lens[index]))
             for line in opt_help.split('\n'):
                 if first:
                     first = False
-                    self.print('%s' % (line), end='\033[21;39m\n')
+                    self.print('%s' % (line), end='\033[00m\n')
                 else:
-                    self.print('%s\033[%sm%s\033[39m' % (' ' * col, colour, line))
+                    self.print('%s\033[%sm%s\033[00m' % (' ' * col, colour, line))
             index += 1
         
         self.print()
