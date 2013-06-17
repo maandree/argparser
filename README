@@ -1,0 +1,4 @@
+Command line argument parser library for multiple languages
+with the capability of both - and + short arguments and
+both -- and ++ long arguments. It supports variadic arguments,
+colours and using either an array or /proc/self/cmdline.
