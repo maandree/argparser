@@ -42,7 +42,7 @@ class ArgParser():
     
     ArgParser.VARIADIC = 2
     '''
-    :int   Option consumes all following arguments
+    :int  Option consumes all following arguments
     '''
     
     
