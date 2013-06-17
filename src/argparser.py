@@ -52,7 +52,7 @@ class ArgParser():
         The short description is printed on same line as the program name
         
         @param  description:str      Short, single-line, description of the program
-        @param  usage:str            Formated, multi-line, usage text
+        @param  usage:str?           Formated, multi-line, usage text, may be `None`
         @param  longdescription:str  Long, multi-line, description of the program, may be `None`
         @param  program:str?         The name of the program, `None` for automatic
         @param  usestderr:str        Whether to use stderr instead of stdout
@@ -388,15 +388,16 @@ class ArgParser():
             self.__print(self.__longdescription)
         self.__print()
         
-        self.__print('\033[01mUSAGE:\033[21m', end='')
-        first = True
-        for line in self.__usage.split('\n'):
-            if first:
-                first = False
-            else:
-                self.__print('    or', end='')
-            self.__print('\t%s' % (line))
-        self.__print()
+        if self.__usage is not None:
+            self.__print('\033[01mUSAGE:\033[21m', end='')
+            first = True
+            for line in self.__usage.split('\n'):
+                if first:
+                    first = False
+                else:
+                    self.__print('    or', end='')
+                self.__print('\t%s' % (line))
+            self.__print()
         
         maxfirstlen = []
         for opt in self.__options:
