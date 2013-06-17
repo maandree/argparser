@@ -62,7 +62,7 @@ class ArgParser():
         self.__description = description
         self.__usage = usage
         self.__longdescription = longdescription
-        self.__arguments = []
+        self.__options = []
         self.opts = {}
         self.optmap = {}
         self.__out = sys.stderr.buffer if usestderr else sys.stdout.buffer
@@ -137,7 +137,7 @@ class ArgParser():
         @parma  default:str|int         The default argument's name or index
         @param  help:str?               Short description, use `None` to hide the option
         '''
-        self.__arguments.append((ArgParser.ARGUMENTLESS, alternatives, None, help))
+        self.__options.append((ArgParser.ARGUMENTLESS, alternatives, None, help))
         stdalt = alternatives[default] if isinstance(default, int) else default
         self.opts[stdalt] = None
         for alt in alternatives:
@@ -153,7 +153,7 @@ class ArgParser():
         @param  arg:str                 The name of the takes argument, one word
         @param  help:str?               Short description, use `None` to hide the option
         '''
-        self.__arguments.append((ArgParser.ARGUMENTED, alternatives, arg, help))
+        self.__options.append((ArgParser.ARGUMENTED, alternatives, arg, help))
         stdalt = alternatives[default] if isinstance(default, int) else default
         self.opts[stdalt] = None
         for alt in alternatives:
@@ -169,7 +169,7 @@ class ArgParser():
         @param  arg:str                 The name of the takes arguments, one word
         @param  help:str?               Short description, use `None` to hide the option
         '''
-        self.__arguments.append((ArgParser.VARIADIC, alternatives, arg, help))
+        self.__options.append((ArgParser.VARIADIC, alternatives, arg, help))
         stdalt = alternatives[default] if isinstance(default, int) else default
         self.opts[stdalt] = None
         for alt in alternatives:
@@ -284,7 +284,7 @@ class ArgParser():
             if len(argqueue) >= i:
                 self.opts[opt].append(arg)
         
-        for arg in self.__arguments:
+        for arg in self.__options:
             if arg[0] == ArgParser.VARIADIC:
                 varopt = self.opts[arg[1][0]]
                 if varopt is not None:
@@ -396,7 +396,7 @@ class ArgParser():
         self.print()
         
         maxfirstlen = []
-        for opt in self.__arguments:
+        for opt in self.__options:
             opt_alts = opt[1]
             opt_help = opt[3]
             if opt_help is None:
@@ -409,7 +409,7 @@ class ArgParser():
         
         self.print('\033[01mSYNOPSIS:\033[21m')
         (lines, lens) = ([], [])
-        for opt in self.__arguments:
+        for opt in self.__options:
             opt_type = opt[0]
             opt_alts = opt[1]
             opt_arg = opt[2]
@@ -436,7 +436,7 @@ class ArgParser():
         col = max(lens)
         col += 8 - ((col - 4) & 7)
         index = 0
-        for opt in self.__arguments:
+        for opt in self.__options:
             opt_help = opt[3]
             if opt_help is None:
                 continue
