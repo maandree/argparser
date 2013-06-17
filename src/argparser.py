@@ -333,7 +333,7 @@ class ArgParser():
                     msg += ' %s' % opt[0]
                 else:
                     msg += ' %s(%s)' % opt
-            sys.stderr.write(msg + '\n')
+            print(msg)
             if exit_value is not None:
                 sys.exit(exit_value)
             return False
@@ -354,7 +354,7 @@ class ArgParser():
                 msg = self.program + ': option used out of context: ' + opt
                 if opt != self.optmap[opt][0]:
                     msg += '(' + self.optmap[opt][0] + ')'
-                sys.stderr.write(msg + '\n')
+                print(msg)
                 rc = False
         if (not rc) and (exit_value is not None):
             sys.exit(exit_value)
