@@ -70,6 +70,12 @@ class ArgParser():
     
     @staticmethod
     def parent_name(levels = 1):
+        '''
+        Gets the name of the parent process
+        
+        @param   levels:int  The number of parents to walk, 0 for self, and 1 for direct parent
+        @return  :str?       The name of the parent process, `None` if not found
+        '''
         pid = os.readlink('/proc/self')
         lvl = levels
         while lvl > 1:
