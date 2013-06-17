@@ -58,7 +58,7 @@ class ArgParser():
         @param  usestderr:str        Whether to use stderr instread of stdout
         '''
         self.linuxvt = ('TERM' in os.environ) and (os.environ['TERM'] == 'linux')
-        self.__program = sys.argv[0] if program is None else program
+        self.program = sys.argv[0] if program is None else program
         self.__description = description
         self.__usage = usage
         self.__longdescription = longdescription
@@ -112,45 +112,48 @@ class ArgParser():
         self.__out.write((str(text) + end).encode('utf-8'))
     
     
-    def add_argumentless(self, alternatives, help = None):
+    def add_argumentless(self, alternatives, default = 0, help = None):
         '''
         Add option that takes no arguments
         
         @param  alternatives:list<str>  Option names
-        @param  help:str                Short description, use `None` to hide the option
+        @parma  default:str|int         The default argument's name or index
+        @param  help:str?               Short description, use `None` to hide the option
         '''
         self.__arguments.append((ArgParser.ARGUMENTLESS, alternatives, None, help))
-        stdalt = alternatives[0]
+        stdalt = alternatives[default] if isinstance(default, int) else default
         self.opts[stdalt] = None
         for alt in alternatives:
             self.optmap[alt] = (stdalt, ArgParser.ARGUMENTLESS)
     
     
-    def add_argumented(self, alternatives, arg, help = None):
+    def add_argumented(self, alternatives, default = 0, arg = 'ARG', help = None):
         '''
         Add option that takes one argument
         
         @param  alternatives:list<str>  Option names
+        @parma  default:str|int         The default argument's name or index
         @param  arg:str                 The name of the takes argument, one word
-        @param  help:str                Short description, use `None` to hide the option
+        @param  help:str?               Short description, use `None` to hide the option
         '''
         self.__arguments.append((ArgParser.ARGUMENTED, alternatives, arg, help))
-        stdalt = alternatives[0]
+        stdalt = alternatives[default] if isinstance(default, int) else default
         self.opts[stdalt] = None
         for alt in alternatives:
             self.optmap[alt] = (stdalt, ArgParser.ARGUMENTED)
     
     
-    def add_variadic(self, alternatives, arg, help = None):
+    def add_variadic(self, alternatives, default = 0, arg = 'ARG', help = None):
         '''
         Add option that takes all following argument
         
         @param  alternatives:list<str>  Option names
+        @parma  default:str|int         The default argument's name or index
         @param  arg:str                 The name of the takes arguments, one word
-        @param  help:str                Short description, use `None` to hide the option
+        @param  help:str?               Short description, use `None` to hide the option
         '''
         self.__arguments.append((ArgParser.VARIADIC, alternatives, arg, help))
-        stdalt = alternatives[0]
+        stdalt = alternatives[default] if isinstance(default, int) else default
         self.opts[stdalt] = None
         for alt in alternatives:
             self.optmap[alt] = (stdalt, ArgParser.VARIADIC)
@@ -182,7 +185,7 @@ class ArgParser():
         def unrecognised(arg):
             self.unrecognisedCount += 1
             if self.unrecognisedCount <= 5:
-                sys.stderr.write('%s: warning: unrecognised option %s\n' % (self.__program, arg))
+                sys.stderr.write('%s: warning: unrecognised option %s\n' % (self.program, arg))
             self.rc = False
         
         while len(deque) != 0:
@@ -284,11 +287,82 @@ class ArgParser():
         return self.rc
     
     
+    def support_alternatives(self):
+        '''
+        Maps up options that are alternatives to the first alternative for each option
+        '''
+        for alt in self.optmap:
+            self.opts[alt] = self.opts[self.optmap[alt][0]]
+    
+    
+    def test_exclusiveness(self, exclusives, exit_value = None):
+        '''
+        Checks for option conflicts
+        
+        @param   exclusives:set<str>  Exclusive options
+        @param   exit_value:int?      The value to exit with on the check does not pass, `None` if not to exit
+        @return  :bool                Whether at most one exclusive option was used
+        '''
+        used = []
+        
+        for opt in self.opts:
+            if (self.opts[opt] is not None) and (opt in exclusives):
+                used.append((opt, self.optmap[opt][0]))
+        
+        if len(used) > 1:
+            msg = self.program + ': conflicting options:'
+            for opt in used:
+                if opt[1] == opt[0]:
+                    msg += ' %s' % opt[0]
+                else:
+                    msg += ' %s(%s)' % opt
+            sys.stderr.write(msg + '\n')
+            if exit_value is not None:
+                sys.exit(exit_value)
+            return False
+        return True
+    
+    
+    def test_allowed(self, allowed, exit_value = None):
+        '''
+        Checks for out of context option usage
+        
+        @param   allowed:set<str>  Allowed options
+        @param   exit_value:int?   The value to exit with on the check does not pass, `None` if not to exit
+        @return  :bool             Whether only allowed options was used
+        '''
+        for opt in self.opts:
+            if (self.opts[opt] is not None) and (opt not in allowed):
+                msg = self.program + ': option used out of context: ' + opt
+                if opt != self.optmap[opt][0]:
+                    msg += '(' + self.optmap[opt][0] + ')'
+                sys.stderr.write(msg + '\n')
+                if exit_value is not None:
+                    sys.exit(exit_value)
+                return False
+        return True
+    
+    
+    def test_files(self, min = 0, max = None, exit_value = None):
+        '''
+        Checks the correctness of the number of used non-option arguments
+        
+        @param   min:int          The minimum number of files
+        @param   max:int?         The maximum number of files, `None` for unlimited
+        @param   exit_value:int?  The value to exit with on the check does not pass, `None` if not to exit
+        @return  :bool            Whether the usage was correct
+        '''
+        rc = (min <= len(self.files)) if max is None else (min <= len(self.files) <= max)
+        if (not rc) and (exit_value is not None):
+            sys.exit(exit_value)
+        return rc
+    
+    
     def help(self):
         '''
         Prints a colourful help message
         '''
-        self.print('\033[01m%s\033[21m %s %s' % (self.__program, '-' if self.linuxvt else '—', self.__description))
+        self.print('\033[01m%s\033[21m %s %s' % (self.program, '-' if self.linuxvt else '—', self.__description))
         self.print()
         if self.__longdescription is not None:
             self.print(self.__longdescription)
