@@ -133,7 +133,7 @@ function args_dispose
 function args_parent_name
 {
     local pid=$$ lvl=$1 found=0 line arg
-    while (( $lvl > 1 )) && [ $found = 0 ]; do
+    while (( $lvl > 0 )) && [ $found = 0 ]; do
 	while read line; do
 	    if [ "${line:5}" = "PPid:" ]; then
 		line="${line:5}"

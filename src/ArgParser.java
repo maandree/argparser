@@ -464,7 +464,7 @@ public class ArgParser
 	int lvl = levels;
 	try
 	{   outer:
-	        while (lvl > 1)
+	        while (lvl > 0)
 		{
 		    InputStream is = null;
 		    try

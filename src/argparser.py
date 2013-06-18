@@ -79,7 +79,7 @@ class ArgParser():
         '''
         pid = os.readlink('/proc/self')
         lvl = levels
-        while lvl > 1:
+        while lvl > 0:
             with file as open('/proc/%d/status' % pid, 'r'):
                 lines = file.readlines()
                 found = False
