@@ -289,7 +289,7 @@ class ArgParser():
             if arg[0] == ArgParser.VARIADIC:
                 varopt = self.opts[arg[1][4]]
                 if varopt is not None:
-                    additional = ','.join(self.files).split(',') if len(self.files) > 0 else []
+                    additional = self.files if len(self.files) > 0 else []
                     if varopt[0] is None:
                         self.opts[arg[1][4]] = additional
                     else:
