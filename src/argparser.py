@@ -137,8 +137,8 @@ class ArgParser():
         @parma  default:str|int         The default argument's name or index
         @param  help:str?               Short description, use `None` to hide the option
         '''
-        self.__options.append((ArgParser.ARGUMENTLESS, alternatives, None, help))
         stdalt = alternatives[default] if isinstance(default, int) else default
+        self.__options.append((ArgParser.ARGUMENTLESS, alternatives, None, help, stdalt))
         self.opts[stdalt] = None
         for alt in alternatives:
             self.optmap[alt] = (stdalt, ArgParser.ARGUMENTLESS)
@@ -153,8 +153,8 @@ class ArgParser():
         @param  arg:str                 The name of the takes argument, one word
         @param  help:str?               Short description, use `None` to hide the option
         '''
-        self.__options.append((ArgParser.ARGUMENTED, alternatives, arg, help))
         stdalt = alternatives[default] if isinstance(default, int) else default
+        self.__options.append((ArgParser.ARGUMENTED, alternatives, arg, help, stdalt))
         self.opts[stdalt] = None
         for alt in alternatives:
             self.optmap[alt] = (stdalt, ArgParser.ARGUMENTED)
@@ -169,8 +169,8 @@ class ArgParser():
         @param  arg:str                 The name of the takes arguments, one word
         @param  help:str?               Short description, use `None` to hide the option
         '''
-        self.__options.append((ArgParser.VARIADIC, alternatives, arg, help))
         stdalt = alternatives[default] if isinstance(default, int) else default
+        self.__options.append((ArgParser.VARIADIC, alternatives, arg, help, stdalt))
         self.opts[stdalt] = None
         for alt in alternatives:
             self.optmap[alt] = (stdalt, ArgParser.VARIADIC)
@@ -287,20 +287,20 @@ class ArgParser():
         
         for arg in self.__options:
             if arg[0] == ArgParser.VARIADIC:
-                varopt = self.opts[arg[1][0]]
+                varopt = self.opts[arg[1][4]]
                 if varopt is not None:
                     additional = ','.join(self.files).split(',') if len(self.files) > 0 else []
                     if varopt[0] is None:
-                        self.opts[arg[1][0]] = additional
+                        self.opts[arg[1][4]] = additional
                     else:
-                        self.opts[arg[1][0]] = varopt[0].split(',') + additional
+                        self.opts[arg[1][4]] = varopt[0].split(',') + additional
                     self.files = []
                     break
         
         self.message = ' '.join(self.files) if len(self.files) > 0 else None
         
         if self.unrecognisedCount > 5:
-            sys.stderr.write('%s: warning: %i more unrecognised %s\n' % (self.unrecognisedCount - 5, 'options' if self.unrecognisedCount == 6 else 'options'))
+            self.__print('%s: warning: %i more unrecognised %s\n' % (self.program, self.unrecognisedCount - 5, 'options' if self.unrecognisedCount == 6 else 'options'))
         
         return self.rc
     

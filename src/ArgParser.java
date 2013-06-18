@@ -164,6 +164,11 @@ public class ArgParser
     public int unrecognisedCount = 0;
     
     /**
+     * The concatination of {@link #files} with blankspaces as delimiters, {@code null} if no files
+     */
+    public String message = null;
+    
+    /**
      * Options, in order
      */
     private final ArrayList<Option> options = new ArrayList<Option>();
@@ -1002,6 +1007,62 @@ public class ArgParser
 		this.files.add(arg);
 	}
 	
+	int i = 0, n = optqueue.size();
+	while (i < n)
+	{
+	    final String opt = this.optmap.get(optqueue.get(i)).standard;
+	    final String arg = argqueue.size() > i ? argqueue.get(i) : null;
+	    i++;
+	    if (this.opts.get(opt) == null)
+		this.opts.put(opt, new String[] {});
+	    if (argqueue.size() >= i)
+		this.opts.put(opt, append(this.opts.get(opt), arg));
+	}
+	
+	for (final Option opt : this.options)
+	    if (opt.getClass() == Variadic.class)
+	    {	final String[] varopt = this.opts.get(opt.standard);
+		if (varopt != null)
+		{
+		    final String[] additional = new String[this.files.size()];
+		    this.files.toArray(additional);
+		    if (varopt[0] == null)
+			this.opts.put(opt.standard, additional);
+		    else
+			this.opts.put(opt.standard, append(varopt, additional));
+		    this.files.clear();
+		    break;
+	    }	}
+	
+	final StringBuilder sb = new StringBuilder();
+	for (final String file : this.files)
+	{   sb.append(' ');
+	    sb.append(file);
+	}
+	this.message = sb.toString().substring(1);
+	
+	if (this.unrecognisedCount > 5)
+	{   int more = this.unrecognisedCount - 5;
+            this.print(this.program + ": warning: " + more + " more unrecognised ");
+	    this.println(more == 1 ? "option" : "options");
+	}
+	
+	return rc;
+    }
+    
+    
+    /**
+     * Create a new identical array, except with extra items at the end
+     * 
+     * @param   array  The array
+     * @param   items  The new items
+     * @return         The new array
+     */
+    private String[] append(final String[] array, final String... items)
+    {
+	final String[] rc = new String[array.length + items.length];
+	System.arraycopy(array, 0, rc, 0, array.length);
+	System.arraycopy(items, 0, rc, array.length, items.length);
 	return rc;
     }
     
