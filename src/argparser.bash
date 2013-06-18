@@ -70,6 +70,48 @@ function args_init
 }
 
 
+# Look up function for parsed arguments
+# 
+# @param  $1:str  Action: has, count, null or get
+# @param  $2:str  Option name
+# @exit           0 on success/true, 1 on false, 2 on failure
+# 
+# @action  has    Checks if the option is used
+# @action  count  Gets the number of time the option is used, :int is returned
+# @action  null   Checks if the option value at index $3:int is null
+# @action  get    Gets option value of indices $3…, all values if $# = 2, :(str) is returned
+function args_option
+{
+    local rc dir="${args_opts}/$2" i
+    if [ "$1" = has ]; then
+	[ -e "${dir}" ]
+	return $?
+    elif [ "$1" = count ]; then
+	if [ -e "${dir}" ]; then
+	    echo "$(wc -l < "${dir}/null")"
+	    return 0
+	else
+	    echo 0
+	    return 1
+	fi
+    elif [ "$1" = null ]; then
+	rc="$(head -n $(( $3 + 1 )) < "${dir}/null" | tail -n 1)"
+	return (( 1 - $rc ))
+    elif [ "$1" = get ]; then
+	shift 2
+	if [ $# = 0 ]; then
+	    cat "${dir}/data"
+	else
+	    for i in "$@"; do
+		head -n $(( $i + 1 )) < "${dir}/data" | tail -n 1
+	    done
+	fi
+	return 0
+    fi
+    return 2
+}
+
+
 # Disposes of resources, you really should be doing this when you are done with this module
 # 
 # @param  $1:int  The ID of process that alloceted the resources, empty for the current process
@@ -224,10 +266,10 @@ function args_add_argumentless
 {
     local default="$1" help="$2" std alts alt
     shift 2
-    args_options+=( ${args_ARGUMENTLESS} "" "${help}" ${#args_opts_alts[@]} $# )
-    args_opts_alts+=( "$@" )
     alts=( "$@" )
     std="${alts[$default]}"
+    args_options+=( ${args_ARGUMENTLESS} "" "${help}" ${#args_opts_alts[@]} $# "${std}" )
+    args_opts_alts+=( "$@" )
     for alt in "${alts[@]}"; do
 	echo "$std" > "${args_optmap}/${alt}"
 	echo ${args_ARGUMENTLESS} >> "${args_optmap}/${alt}"
@@ -248,10 +290,10 @@ function args_add_argumented
     if [ "${arg}" = "" ]; then
 	arg="ARG"
     fi
-    args_options+=( ${args_ARGUMENTED} "${arg}" "${help}" ${#args_opts_alts[@]} $# )
-    args_opts_alts+=( "$@" )
     alts=( "$@" )
     std="${alts[$default]}"
+    args_options+=( ${args_ARGUMENTED} "${arg}" "${help}" ${#args_opts_alts[@]} $# "${std}" )
+    args_opts_alts+=( "$@" )
     for alt in "${alts[@]}"; do
 	echo "$std" > "${args_optmap}/${alt}"
 	echo ${args_ARGUMENTED} >> "${args_optmap}/${alt}"
@@ -272,10 +314,10 @@ function args_add_variadic
     if [ "${arg}" = "" ]; then
 	arg="ARG"
     fi
-    args_options+=( ${args_VARIADIC} "${arg}" "${help}" ${#args_opts_alts[@]} $# )
-    args_opts_alts+=( "$@" )
     alts=( "$@" )
     std="${alts[$default]}"
+    args_options+=( ${args_VARIADIC} "${arg}" "${help}" ${#args_opts_alts[@]} $# "${std}" )
+    args_opts_alts+=( "$@" )
     for alt in "${alts[@]}"; do
 	echo "$std" > "${args_optmap}/${alt}"
 	echo ${args_VARIADIC} >> "${args_optmap}/${alt}"
@@ -319,11 +361,11 @@ function help
 	echo >> "${args_out}"
     fi
     
-    n=$(( ${#args_options[@]} / 5 ))
+    n=$(( ${#args_options[@]} / 6 ))
     while (( $i < $n )); do
-	help="${args_options[(( $i * 5 + 2 ))]}"
-	start=${args_options[(( $i * 5 + 3 ))]}
-	count=${args_options[(( $i * 5 + 4 ))]}
+	help="${args_options[(( $i * 6 + 2 ))]}"
+	start=${args_options[(( $i * 6 + 3 ))]}
+	count=${args_options[(( $i * 6 + 4 ))]}
 	(( i++ ))
 	if [ "${help}" = "" ]; then
 	    continue
@@ -341,11 +383,11 @@ function help
     echo -e "\e[01mSYNOPSIS:\e[21m" >> "${args_out}"
     i=0
     while (( $i < $n )); do
-	 type=${args_options[(( $i * 5 + 0 ))]}
-         arg="${args_options[(( $i * 5 + 1 ))]}"
-	help="${args_options[(( $i * 5 + 2 ))]}"
-	start=${args_options[(( $i * 5 + 3 ))]}
-	count=${args_options[(( $i * 5 + 4 ))]}
+	 type=${args_options[(( $i * 6 + 0 ))]}
+         arg="${args_options[(( $i * 6 + 1 ))]}"
+	help="${args_options[(( $i * 6 + 2 ))]}"
+	start=${args_options[(( $i * 6 + 3 ))]}
+	count=${args_options[(( $i * 6 + 4 ))]}
 	(( i++ ))
 	if [ "${help}" = "" ]; then
 	    continue
@@ -382,7 +424,7 @@ function help
     empty="${empty::$col}"
     i=0
     while (( $i < $n )); do
-	help="${args_options[(( $i * 5 + 2 ))]}"
+	help="${args_options[(( $i * 6 + 2 ))]}"
 	(( i++ ))
 	if [ "${help}" = "" ]; then
 	    continue
@@ -406,5 +448,190 @@ function help
     done
     
     echo >> "${args_out}"
+}
+
+
+# Parse arguments
+# 
+# @param  $@:(str)  The command line arguments, should exclude the execute file
+# @exit             Whether no unrecognised option is used
+function parse
+{
+    local nulqueue=() argqueue=() optqueue=() queue=() opt arg _arg argnull
+    local dashed=0 tmpdashed=0 get=0 dontget=0 rc=0 i n more std sign type
+    
+    args_argcount=$#
+    args_unrecognised_count=0
+    
+    while [ ! $# = 0 ]; do
+	while [ ! $# = 0 ]; do
+	    arg="$1"
+	    shift 1
+	    _arg="${arg/+/-}"
+	    if [ ! $get = 0 ] && [ $dontget = 0 ]; then
+		(( get-- ))
+		argqueue+=( "$arg" )
+		nulqueue+=( 0 )
+	    elif [ $tmpdashed = 1 ]; then
+		args_files+=( "$arg" )
+		tmpdashed=0
+	    elif [ $dashed = 1 ]; then
+		args_files+=( "$arg" )
+	    elif [ "$arg" = "++" ]; then
+		tmpdashed=1
+	    elif [ "$arg" = "--" ]; then
+		dashed=1
+	    elif (( ${#arg} > 1 )) && [ "${_arg::1}" = "-" ]; then
+		if (( ${#arg} > 2 )) && [ "${_arg::1}" = "${_arg:1:1}" ]; then
+		    if [ ! $dontget = 0 ]; then
+			(( dontget-- ))
+		    elif [ ! -e "${args_optmap}/${arg}" ]; then
+			(( args_unrecognised_count++ ))
+			if (( args_unrecognised_count <= 5 )); then
+			    echo "${args_program}: warning: unrecognised option ${arg}" >> "${args_out}"
+			fi
+			rc=1
+		    else
+			type="$(tail -n 1 < "${args_optmap}/${arg}")"
+			if [ $type = ${args_ARGUMENTLESS} ]; then
+			    optqueue+=( "${arg}" )
+			    argqueue+=( "" )
+			    nulqueue+=( 1 )
+			elif []; then
+			    _arg="${arg%%=*}"
+			    type="$(tail -n 1 < "${args_optmap}/${_arg}")"
+			    if (( $type >= ${args_ARGUMENTED} )); then
+				optqueue+=( "${_arg}" )
+				argqueue+=( "${arg#*=}" )
+				nulqueue+=( 0 )
+				if [ $type = ${args_VARIADIC} ]; then
+				    dashed=1
+				fi
+			    else
+				(( args_unrecognised_count++ ))
+				if (( args_unrecognised_count <= 5 )); then
+				    echo "${args_program}: warning: unrecognised option ${arg}" >> "${args_out}"
+				fi
+				rc=1
+			    fi
+			elif [ $type = ${args_ARGUMENTED} ]; then
+			    optqueue+=( "${arg}" )
+			    (( get++ ))
+			else
+			    optqueue+=( "${arg}" )
+			    argqueue+=( "" )
+			    nulqueue+=( 1 )
+			    dashed=1
+			fi
+		    fi
+		else
+		    sign="${_arg::1}"
+		    i=1
+		    n=${#arg}
+		    while [ ! $i = $n ]; do
+			_arg="$sign${arg:$i:1}"
+			(( i++ ))
+			if [ -e "${args_optmap}/${_arg}" ]; then
+			    type="$(tail -n 1 < "${args_optmap}/${_arg}")"
+			    optqueue+=( "${_arg}" )
+			    if [ $type = ${args_ARGUMENTLESS} ]; then
+				argqueue+=( "" )
+				nulqueue+=( 1 )
+			    elif [ $type = ${args_ARGUMENTED} ]; then
+				if [ ${#arg} == $i ]; then
+				    (( get++ ))
+				else
+				    argqueue+=( "${arg:i}" )
+				    nulqueue+=( 0 )
+				fi
+				break
+			    else
+				if [ ${#arg} == $i ]; then
+				    argqueue+=( "" )
+				    nulqueue+=( 1 )
+				else
+				    argqueue+=( "${arg:i}" )
+				    nulqueue+=( 0 )
+				fi
+				dashed=1
+				break
+			    fi
+			else
+			    (( args_unrecognised_count++ ))
+			    if (( args_unrecognised_count <= 5 )); then
+				echo "${args_program}: warning: unrecognised option ${arg}" >> "${args_out}"
+			    fi
+			    rc=1
+			fi
+		    done
+		fi
+	    else
+		args_files+=( "$arg" )
+	    fi
+	done
+	set "${queue[@]}"
+	queue=()
+    done
+    
+    i=0
+    n=${#optqueue[@]}
+    while (( $i < $n )); do
+	opt="${optqueue[$i]}"
+	arg=""
+	(( ${#argqueue[@]} > $i )) && [ ${nulqueue[$i]} = 1 ]
+	argnull=$?
+	if [ $argnull = 0 ]; then
+	    arg="${argqueue[$i]}"
+	fi
+	(( i++ ))
+	opt="$(head -n 1 < "${args_optmap}/${opt}")"
+	if [ ! -e "${args_opts}/${opt}" ]; then
+	    mkdir -p "${args_opts}/${opt}"
+	    echo -n "${args_opts}/${opt}/data"
+	    echo -n "${args_opts}/${opt}/null"
+	fi
+	if (( ${#argqueue[@]} >= $i )); then
+	    echo "$arg" >> "${args_opts}/${opt}/data"
+	    echo "$argnull" >> "${args_opts}/${opt}/null"
+	fi
+    done
+    
+    i=0
+    n=$(( ${#arg_options[@]} / 6 ))
+    while (( $i < $n )); do
+	type=${args_options[(( $i * 6 + 0 ))]}
+	 std=${args_options[(( $i * 6 + 5 ))]}
+	(( i++ ))
+	if [ $type = ${args_VARIADIC} ] && [ -e "${args_opts}/${std}" ]; then
+	    if [ "$(head -n 1 < "${args_opts}/${std}/null")" = 1 ]; then
+		rm "${args_opts}/${std}/data"
+		rm "${args_opts}/${std}/null"
+	    fi
+	    for arg in "${args_files[@]}"; do
+		echo "${arg}" >> "${args_opts}/${std}/data"
+		echo 0 >> "${args_opts}/${std}/null"
+	    done
+	    args_files=()
+	    break
+	fi
+    done
+    
+    args_message="${args_files[*]}"
+    args_has_message="${#args_files[@]}"
+    if [[ ! $args_has_message = 0 ]]; then
+	args_has_message=1
+    fi
+    
+    if (( ${args_unrecognised_count} > 5 )); then
+	more=$(( ${args_unrecognised_count} - 1 ))
+        echo -n "${args_program}: warning: ${more} more unrecognised " >> "${args_out}"
+	if [ ! $more = 1 ]; then
+	    echo "options" >> "${args_out}"
+	else
+	    echo "option" >> "${args_out}"
+	fi
+    fi
+    
+    return $rc
 }
 
