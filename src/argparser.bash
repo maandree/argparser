@@ -326,7 +326,7 @@ function args_add_variadic
 
 
 # Prints a colourful help message
-function help
+function args_help
 {
     local dash first last maxfirstlen=0 i=0 n help start count lines=() lens=()
     local empty="        " line l col index=0 colour
@@ -455,13 +455,14 @@ function help
 # 
 # @param  $@:(str)  The command line arguments, should exclude the execute file
 # @exit             Whether no unrecognised option is used
-function parse
+function args_parse
 {
     local nulqueue=() argqueue=() optqueue=() queue=() opt arg _arg argnull
     local dashed=0 tmpdashed=0 get=0 dontget=0 rc=0 i n more std sign type
     
     args_argcount=$#
     args_unrecognised_count=0
+    args_arguments=( "$@" )
     
     while [ ! $# = 0 ]; do
 	while [ ! $# = 0 ]; do

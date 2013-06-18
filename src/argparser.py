@@ -184,6 +184,7 @@ class ArgParser():
         @return  :bool           Whether no unrecognised option is used
         '''
         self.argcount = len(argv) - 1
+        self.arguments = argv[1:]
         self.files = []
         
         argqueue = []
