@@ -849,7 +849,7 @@ public class ArgParser
 		first = empty;
 	    else
 		first += empty.substring(first.length());
-	    String line = "    \033[02m" + first + "\033[22m  %colour%" + last;
+	    String line = "    \033[02m" + first + "\033[22m  \0" + last;
 	    l += first.length() + 6 + last.length();
 	    if (opt instanceof Variadic)
 	    {	line += " [\033[04m" + opt.argument + "\033[24m...]";
@@ -874,7 +874,7 @@ public class ArgParser
 		continue;
 	    boolean first = true;
 	    final String colour = (index & 1) == 0 ? "36" : "34";
-	    {   String line = lines.get(index).replace("%colour%", "\033[" + colour + ";01m");
+	    {   String line = lines.get(index).replace("\0", "\033[" + colour + ";01m");
 		line += empty.substring(lens.get(index)[0]);
 		this.print(line, false);
 	    }

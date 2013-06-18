@@ -428,7 +428,7 @@ class ArgParser():
             alts[0] += ' ' * (maxfirstlen - len(alts[0]))
             for opt_alt in alts:
                 if opt_alt is alts[-1]:
-                    line += '%colour%' + opt_alt
+                    line += '\0' + opt_alt
                     l += len(opt_alt)
                     if   opt_type == ArgParser.ARGUMENTED:  line += ' \033[04m%s\033[24m'      % (opt_arg);  l += len(opt_arg) + 1
                     elif opt_type == ArgParser.VARIADIC:    line += ' [\033[04m%s\033[24m...]' % (opt_arg);  l += len(opt_arg) + 6
@@ -447,7 +447,7 @@ class ArgParser():
                 continue
             first = True
             colour = '36' if (index & 1) == 0 else '34'
-            self.__print(lines[index].replace('%colour%', '\033[%s;01m' % (colour)), end=' ' * (col - lens[index]))
+            self.__print(lines[index].replace('\0', '\033[%s;01m' % (colour)), end=' ' * (col - lens[index]))
             for line in opt_help.split('\n'):
                 if first:
                     first = False
