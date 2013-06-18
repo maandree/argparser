@@ -293,7 +293,7 @@ class ArgParser():
                     if varopt[0] is None:
                         self.opts[arg[1][4]] = additional
                     else:
-                        self.opts[arg[1][4]] = varopt[0].split(',') + additional
+                        self.opts[arg[1][4]] = varopt + additional
                     self.files = []
                     break
         
