@@ -863,7 +863,10 @@ public class ArgParser
 	    lens.add(new int[] { l });
 	}
 	
-	int col = lens.size();
+	int col = 0;
+	for (final int[] len : lens)
+	    if (col < len[0])
+		col = len[0];
 	col += 8 - ((col - 4) & 7);
 	int index = 0;
 	while (empty.length() < col)
