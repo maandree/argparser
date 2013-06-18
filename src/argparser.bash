@@ -267,7 +267,7 @@ function args_add_argumented
 # @param  ...:(str)  Option names
 function args_add_variadic
 {
-    local default="$1" arg="$2" help="$3" std alts alt
+    local default="$1" arg="$2" help="$3" std alts alt type arg
     shift 3
     if [ "${arg}" = "" ]; then
 	arg="ARG"
@@ -280,5 +280,131 @@ function args_add_variadic
 	echo "$std" > "${args_optmap}/${alt}"
 	echo ${args_VARIADIC} >> "${args_optmap}/${alt}"
     done
+}
+
+
+# Prints a colourful help message
+function help
+{
+    local dash first last maxfirstlen=0 i=0 n help start count lines=() lens=()
+    local empty="        " line l col index=0 colour
+    
+    dash="—"
+    if [ ${args_linuxvt} = 1 ]; then
+	dash="-"
+    fi
+    echo -en "\e[01m" >> "${args_out}"
+    echo -n "${args_program}" >> "${args_out}"
+    echo -en "\e[21m" >> "${args_out}"
+    echo "${dash} ${args_description}" >> "${args_out}"
+    
+    echo >> "${args_out}"
+    if [ ! "${args_longdescription}" = "" ]; then
+	echo "${args_longdescription}" >> "${args_out}"
+    fi
+    echo >> "${args_out}"
+    
+    if [ ! "${args_usage}" = "" ]; then
+	echo -en "\e[01mUSAGE:\e[21m" >> "${args_out}"
+	first=1
+	while read line; do
+	    if [ $first = 1 ]; then
+		first=0
+	    else
+		echo -n "    or" >> "${args_out}"
+	    fi
+	    echo -en "\t" >> "${args_out}"
+	    echo "${line}" >> "${args_out}"
+	done <<< "${args_usage}"
+	echo >> "${args_out}"
+    fi
+    
+    n=$(( ${#args_options[@]} / 5 ))
+    while (( $i < $n )); do
+	help="${args_options[(( $i * 5 + 2 ))]}"
+	start=${args_options[(( $i * 5 + 3 ))]}
+	count=${args_options[(( $i * 5 + 4 ))]}
+	(( i++ ))
+	if [ "${help}" = "" ]; then
+	    continue
+	fi
+	if (( $count > 1 )) && (( $maxfirstlen < ${#args_opts_alts[$start]} )); then
+	    maxfirstlen=${#args_opts_alts[$start]}
+	fi
+    done
+    
+    while (( ${#empty} < $maxfirstlen )); do
+	empty="${empty}${empty}"
+    done
+    empty="${empty::$maxfirstlen}"
+    
+    echo -e "\e[01mSYNOPSIS:\e[21m" >> "${args_out}"
+    i=0
+    while (( $i < $n )); do
+	 type=${args_options[(( $i * 5 + 0 ))]}
+         arg="${args_options[(( $i * 5 + 1 ))]}"
+	help="${args_options[(( $i * 5 + 2 ))]}"
+	start=${args_options[(( $i * 5 + 3 ))]}
+	count=${args_options[(( $i * 5 + 4 ))]}
+	(( i++ ))
+	if [ "${help}" = "" ]; then
+	    continue
+	fi
+	first="$empty"
+	last="${args_opts_alts[(( $start + $count - 1))]}"
+	if (( "$count" > 1 )); then
+	    first="${args_opts_alts[(( $start ))]}"
+	    first="${first}${empty:${#first}}"
+	fi
+	line="$(echo -en "    \e[02m")${first}$(echo -en "\e[22m  ")/ARGPARSER_COLOUR/${last}"
+	l=$(( ${#first} + ${#last} + 6 ))
+	if [ $type = ${args_ARGUMENTED} ]; then
+	    line+="$(echo -en " \e[04m")${arg}$(echo -en "\e[24m")"
+	    l=$(( $l + 1 ))
+	elif [ $type = ${args_VARIADIC} ]; then
+	    line+="$(echo -en " [\e[04m")${arg}$(echo -en "\e[24m...]")"
+	    l=$(( $l + 6 ))
+	fi
+	lines+=( "$line" )
+	lens+=( $l )
+    done
+    
+    col=0
+    for i in "${lens[@]}"; do
+	if (( $col < $i )); then
+	    col=$i
+	fi
+    done
+    col=$(( $col + 8 - (($col - 4) & 7) ))
+    while (( ${#empty} < $col )); do
+	empty="${empty}${empty}"
+    done
+    empty="${empty::$col}"
+    i=0
+    while (( $i < $n )); do
+	help="${args_options[(( $i * 5 + 2 ))]}"
+	(( i++ ))
+	if [ "${help}" = "" ]; then
+	    continue
+	fi
+	first=1
+	colour=$(( 36 - 2 * ($index & 1) ))
+	colour="$(sed -e "s:/ARGPARSER_COLOUR/:\x1b[${colour};01m:g" <<< "${lines[$index]}")"
+	echo -n "${colour}${empty:${lens[$index]}}" >> "${args_out}"
+	while read line; do
+	    if [ $first = 1 ]; then
+		first=0
+		echo -n "${line}" >> "${args_out}"
+		echo -e "\e[00m" >> "${args_out}"
+	    else
+		echo -en "${empty}\e[${colour}m" >> "${args_out}"
+		echo -n "${line}" >> "${args_out}"
+		echo -e "\e[00m" >> "${args_out}"
+	    fi
+	done <<< "${help}"
+	(( index++ ))
+    done
+    
+    echo >> "${args_out}"
 }
 
