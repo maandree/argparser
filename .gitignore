@@ -9,9 +9,10 @@ obj/
 *.bak
 *.sw[op]
 *.py[oc]
+*.class
+*.jar
 *.out
 *.gch
-*.class
 *.o
 *.so
 *.la
