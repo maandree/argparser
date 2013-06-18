@@ -289,11 +289,10 @@ class ArgParser():
             if arg[0] == ArgParser.VARIADIC:
                 varopt = self.opts[arg[1][4]]
                 if varopt is not None:
-                    additional = self.files if len(self.files) > 0 else []
                     if varopt[0] is None:
-                        self.opts[arg[1][4]] = additional
+                        self.opts[arg[1][4]] = self.files
                     else:
-                        self.opts[arg[1][4]] = varopt + additional
+                        self.opts[arg[1][4]] = varopt + self.files
                     self.files = []
                     break
         
