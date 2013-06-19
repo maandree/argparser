@@ -889,10 +889,10 @@ public class ArgParser
 	    for (final String line : opt.help.split("\n"))
 		if (first)
 		{   first = false;
-		    print(line + "\033[00m\n");
+		    this.print(line + "\033[00m\n");
 		}
 		else
-		    print(empty + "\033[" + colour + "m" + line + "\033[00m\n");
+		    this.print(empty + "\033[" + colour + "m" + line + "\033[00m\n");
 	    index++;
 	}
 	
