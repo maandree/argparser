@@ -856,11 +856,11 @@ public class ArgParser
 		first += empty.substring(first.length());
 	    String line = "    \033[02m" + first + "\033[22m  \0" + last;
 	    l += first.length() + 6 + last.length();
-	    if (opt instanceof Variadic)
+	    if (opt.getClass() == Variadic.class)
 	    {	line += " [\033[04m" + opt.argument + "\033[24m...]";
 		l += opt.argument.length() + 6;
 	    }
-	    else if (opt instanceof Argumented)
+	    else if (opt.getClass() Argumented.class)
 	    {	line += " \033[04m" + opt.argument + "\033[24m";
 		l += opt.argument.length() + 1;
 	    }
