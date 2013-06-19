@@ -163,7 +163,9 @@ function args_support_alternatives
 {
     local alt
     for alt in "$(ls "${args_optmap}")"; do
-	ln -s "${args_opts}/$(head -n 1 < "${args_optmap}/${alt}")" "${args_opts}/${alt}"
+	if [ ! -e "${args_opts}/${alt}" ]; then
+	    ln -s "${args_opts}/$(head -n 1 < "${args_optmap}/${alt}")" "${args_opts}/${alt}"
+	fi
     done
 }
 
