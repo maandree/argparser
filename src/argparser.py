@@ -288,12 +288,12 @@ class ArgParser():
         
         for arg in self.__options:
             if arg[0] == ArgParser.VARIADIC:
-                varopt = self.opts[arg[1][4]]
+                varopt = self.opts[arg[4]]
                 if varopt is not None:
                     if varopt[0] is None:
-                        self.opts[arg[1][4]] = self.files
+                        self.opts[arg[4]] = self.files
                     else:
-                        self.opts[arg[1][4]] = varopt + self.files
+                        self.opts[arg[4]] = varopt + self.files
                     self.files = []
                     break
         
