@@ -300,7 +300,7 @@ class ArgParser():
         self.message = ' '.join(self.files) if len(self.files) > 0 else None
         
         if self.unrecognisedCount > 5:
-            self.__print('%s: warning: %i more unrecognised %s\n' % (self.program, self.unrecognisedCount - 5, 'options' if self.unrecognisedCount == 6 else 'options'))
+            self.__print('%s: warning: %i more unrecognised %s' % (self.program, self.unrecognisedCount - 5, 'options' if self.unrecognisedCount == 6 else 'options'))
         
         return self.rc
     
