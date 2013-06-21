@@ -821,7 +821,28 @@ extern long args_parse(int argc, char** argv)
   free(optqueue);
   free(freequeue);
   
-  /* TODO ' '.join(self.files) if len(self.files) > 0 else None */
+  args_message = null;
+  if (args_files_count > 0)
+    {
+      long n = args_files_count, i, j;
+      for (i = 0; i < args_files_count; i++)
+	{
+	  char* file = *(args_files + i);
+	  for (j = 0; *(file + j); j++)
+	    ;
+	  n += j;
+	}
+      args_message = (char*)malloc(n * sizeof(char));
+      n = 0;
+      for (i = 0; i < args_files_count; i++)
+	{
+	  char* file = *(args_files + i);
+	  for (j = 0; *(file + j); j++)
+	    *(args_message + n++) = *(file + j);
+	  *(args_message + n++) = ' ';
+	}
+      *(args_message + --n) = 0;
+    }
   
   if (args_unrecognsed_count > 5)
     {
