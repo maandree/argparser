@@ -159,6 +159,10 @@ extern void args_dispose()
     free(args_message);
   if (args_program_dispose)
     free(args_program);
+  
+  args_files = null;
+  args_message = null;
+  args_program_dispose = false;
 }
 
 
@@ -634,7 +638,199 @@ extern void args_help()
  */
 extern long args_parse(int argc, char** argv)
 {
-  /* TODO */
+  char** argend = argv + argc;
+  long dashed = false, tmpdashed = false, get = 0, dontget = 0, rc = true;
+  long argptr = 0, optptr = 0, freeptr = 0, queuesize/*TODO*/ = argc - 1;
+  char** argqueue;
+  char** optqueue;
+  char** freequeue;
+  
+  args_unrecognised_count = 0;
+  args_arguments_count = argc - 1;
+  args_arguments = argv + 1;
+  args_files = (char**)malloc((argc - 1) * sizeof(char*));
+  
+  argqueue  = (char**)malloc(queuesize * sizeof(char*));
+  optqueue  = (char**)malloc(queuesize * sizeof(char*));
+  freequeue = (char**)malloc(queuesize * sizeof(char*));
+  
+  while (argv != argend)
+    {
+      char* arg = *argv++;
+      if ((get > 0) && (dontget == 0))
+	{
+	  get--;
+	  *(argqueue + argptr++) = arg;
+	}
+      else if (tmpdashed)
+	{
+	  *(args_files + args_files_count++) = arg;
+	  tmpdashed = 0;
+	}
+      else if (dashed)
+	*(args_files + args_files_count++) = arg;
+      else if ((*arg == '+') && (*(arg + 1) == '+') && (*(arg + 2) == 0))
+	tmpdashed = true;
+      else if ((*arg == '-') && (*(arg + 1) == '-') && (*(arg + 2) == 0))
+	dashed = true;
+      else if (((*arg == '-') || (*arg == '+')) && (*(arg + 1) != 0))
+	if (*arg == *(arg + 1))
+	  {
+	    if (dontget > 0)
+	      dontget--;
+	    else if (args_optmap_contains(arg) == false) /* TODO */
+	      {
+		if (++args_unrecognised_count <= 5)
+		  fprintf(args_out, "%s: warning: unrecognised option %s\n", args_program, arg);
+		rc = false;
+	      }
+	    else
+	      {
+		long type = args_optmap_get_type(arg); /* TODO */
+		long eq = 0;
+		if (type != ARGUMENTLESS)
+		  while (*(arg + eq) && (*(arg + eq) != '='))
+		    eq++;
+		if (type == ARGUMENTLESS)
+		  {
+		    *(optqueue + optptr++) = arg;
+		    *(argqueue + argptr++) = null;
+		  }
+		else if (*(arg + eq) == '=')
+		  {
+		    char* arg_opt = (char*)malloc((eq + 1) * sizeof(char));
+		    long i;
+		    for (i = 0; i < eq; i++)
+		      *(arg_opt + i) = *(arg + i);
+		    *(arg_opt + eq) = 0;
+		    if (args_optmap_contains(arg_opt) && ((type = args_optmap_get_type(arg_opt)) >= ARGUMENTED))
+		      {
+			*(optqueue + optptr++) = arg_opt;
+			*(argqueue + argptr++) = arg + eq + 1;
+			*(freequeue + freeptr++) = arg_opt;
+			if (type == VARIADIC)
+			  dashed = true;
+		      }
+		    else
+		      {
+			if (++args_unrecognised_count <= 5)
+			  fprintf(args_out, "%s: warning: unrecognised option %s\n", args_program, arg);
+			rc = false;
+			free(arg_opts);
+		      }
+		  }
+		else if (type == ARGUMENTED)
+		  {
+		    *(optqueue + optptr++) = arg;
+		    get++;
+		  }
+		else
+		  {
+		    *(optqueue + optptr++) = arg;
+		    *(argqueue + argptr++) = null;
+		    dashed = true;
+		  }
+	      }
+	  }
+	else
+	  {
+	    char sign = *arg;
+	    long i = 1;
+	    while (*(arg + i))
+	      {
+		char* narg = (char*)malloc(3 * sizeof(char));
+		*(narg + 0) = sign;
+		*(narg + 1) = *(arg + i);
+		*(narg + 2) = 0;
+		i++;
+		if (args_optmap_contains(narg))
+		  {
+		    long type = args_optmap_get_type(narg);
+		    *(freequeue + freeptr++) = narg;
+		    *(optqueue + optptr++) = narg;
+		    if (type == ARGUMENTLESS)
+		      *(argqueue + argptr++) = null;
+		    else if (type == ARGUMENTED)
+		      {
+			if (*(arg + i))
+			  *(argqueue + argptr++) = arg + i;
+			else
+			  get++;
+			break;
+		      }
+		    else
+		      {
+			*(argqueue + argptr++) = *(arg + i) ? (arg + i) : null;
+			dashed = true;
+			break;
+		      }
+		  }
+		else
+		  {
+		    if (++args_unrecognised_count <= 5)
+		      fprintf(args_out, "%s: warning: unrecognised option %s\n", args_program, arg);
+		    rc = false;
+		    free(narg);
+		  }
+	      }
+	  }
+      else
+	{
+	  if (++args_unrecognised_count <= 5)
+	    fprintf(args_out, "%s: warning: unrecognised option %s\n", args_program, arg);
+	  rc = false;
+	}
+    }
+  
+  {
+    long i = 0;
+    while (i < optptr)
+      {
+	char* opt = args_optmap_get_std(*(optqueue + i));
+	char* arg = argptr > i ? *(optqueue + i) : null;
+	i++;
+	if ((args_optmap_contains(opt) == false) || (args_opts_has(opt)/*TODO*/ == false))
+	  args_opts_new(opt); /*TODO*/
+	if (argptr >= i)
+	  args_opts_append(opt, arg); /*TODO*/
+      }
+  }
+  
+  {
+    long i = 0, j = 0, n = args_get_options_count();
+    for (; i < n; i++)
+      if (args_options_get_type(i) == VARIADIC)
+	{
+	  char* std = args_options_get_standard(i); /*TODO*/
+	  if (args_opts_has(std))
+	    {
+	      if (*(args_opts_get(std)) == null)
+		args_opts_clear(std); /*TODO*/
+	      for (j = 0; j < args_files_count; j++)
+		args_opts_append(std, *(args_files + j));
+	      args_files_count = 0;
+	      break;
+	    }
+	}
+  }
+  
+  for (freeptr -= 1; freeptr >= 0; freeptr--)
+    free(*(freequeue + freeptr));
+  
+  free(argqueue);
+  free(optqueue);
+  free(freequeue);
+  
+  /* TODO ' '.join(self.files) if len(self.files) > 0 else None */
+  
+  if (args_unrecognsed_count > 5)
+    {
+      long more = args_unrecognsed_count - 5;
+      char* option_s = more == 1 ? "option" : "options";
+      fprintf(args_out, "%s: warning: %i more unrecognised %s\n", args_program, more, option_s);
+    }
+  
+  return rc;
 }
 
 
