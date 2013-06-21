@@ -814,7 +814,7 @@ extern long args_parse(int argc, char** argv)
 	}
   }
   
-  for (freeptr -= 1; freeptr >= 0; freeptr--)
+  for (freeptr -= 1; freeptr >= 0; freeptr--) /* TODO freequeue should be freed in args_dispose */
     free(*(freequeue + freeptr));
   
   free(argqueue);
