@@ -640,15 +640,30 @@ extern long args_parse(int argc, char** argv)
 {
   char** argend = argv + argc;
   long dashed = false, tmpdashed = false, get = 0, dontget = 0, rc = true;
-  long argptr = 0, optptr = 0, freeptr = 0, queuesize/*TODO*/ = argc - 1;
+  long argptr = 0, optptr = 0, freeptr = 0, queuesize = argc - 1;
   char** argqueue;
   char** optqueue;
   char** freequeue;
   
   args_unrecognised_count = 0;
   args_arguments_count = argc - 1;
-  args_arguments = argv + 1;
+  args_arguments = ++argv;
   args_files = (char**)malloc((argc - 1) * sizeof(char*));
+  
+  while (argv != argend)
+    {
+      char* arg = *argv++;
+      if (((*arg == '-') || (*arg == '+')) && (*(arg + 1) != 0))
+	if (*arg != *(arg + 1))
+	  {
+	    long i = 1;
+	    while (*(arg + i))
+	      i++;
+	    queuesize += i - 1;
+	  }
+    }
+  
+  argv = args_arguments;
   
   argqueue  = (char**)malloc(queuesize * sizeof(char*));
   optqueue  = (char**)malloc(queuesize * sizeof(char*));
