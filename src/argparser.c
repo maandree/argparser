@@ -20,17 +20,18 @@
 #include <stdio.h>
 
 
-
+/* Code style constants */
 #define true  1
 #define false 0
 #define null  0
 
+/* Constants */
 #define ARGUMENTLESS 0
 #define ARGUMENTED   1
 #define VARIADIC     2
 
-
-
+/* Prototype for static functions */
+static void _sort(char** list, long count, char** temp);
 static void sort(char** list, long count);
 static long cmp(char* a, char* b);
 
