@@ -18,6 +18,7 @@
  */
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 
 /* Code style constants */
@@ -25,7 +26,7 @@
 #define false 0
 #define null  0
 
-/* Constants */ /* TODO */
+/* Constants */
 #define ARGUMENTLESS 0
 #define ARGUMENTED   1
 #define VARIADIC     2
@@ -290,6 +291,83 @@ extern void args_dispose()
 	free(*(freethis + i++));
       free(freethis);
     }
+}
+
+
+/**
+ * Creates, but does not add, a option that takes no arguments
+ * 
+ * @param   standard  The index of the standard alternative name
+ * @param   count...  The alterntive names
+ * @return            The created option
+ */
+extern args_Option args_new_argumentless(int standard, int count, ...)
+{
+  args_Option rc;
+  va_list args;
+  long i;
+  rc.type = ARGUMENTLESS;
+  rc.help = null;
+  rc.argument = "NOTHING";
+  rc.alternatives_count = count;
+  rc.alternatives = (char**)malloc(count * sizeof(char*));
+  va_start(args, count);
+  for (i = 0; i < count; i++)
+    *(rc.alternatives + i) = va_arg(args, char*);
+  va_end(args);
+  if (standard < 0)
+    standard += rc.alternatives_count;
+  rc.standard = *(rc.alternatives + standard);
+}
+
+/**
+ * Creates, but does not add, a option that takes one argument per use
+ * 
+ * @param   argument  The new of the argument
+ * @param   standard  The index of the standard alternative name
+ * @param   count...  The alterntive names
+ * @return            The created option
+ */
+extern args_Option args_new_argumented(char* argument, int standard, int count, ...)
+{
+  args_Option rc;
+  va_list args;
+  long i;
+  rc.type = ARGUMENTED;
+  rc.help = null;
+  rc.argument = argument == null ? "ARG" : argument;
+  rc.alternatives_count = count;
+  rc.alternatives = (char**)malloc(count * sizeof(char*));
+  for (i = 0; i < count; i++)
+    *(rc.alternatives + i) = va_arg(args, char*);
+  if (standard < 0)
+    standard += rc.alternatives_count;
+  rc.standard = *(rc.alternatives + standard);
+}
+
+/**
+ * Creates, but does not add, a option that takes all following arguments
+ * 
+ * @param   argument  The new of the argument
+ * @param   standard  The index of the standard alternative name
+ * @param   count...  The alterntive names
+ * @return            The created option
+ */
+extern args_Option args_new_variadic(char* argument, int standard, int count, ...)
+{
+  args_Option rc;
+  va_list args;
+  long i;
+  rc.type = VARIADIC;
+  rc.help = null;
+  rc.argument = argument == null ? "ARG" : argument;
+  rc.alternatives_count = count;
+  rc.alternatives = (char**)malloc(count * sizeof(char*));
+  for (i = 0; i < count; i++)
+    *(rc.alternatives + i) = va_arg(args, char*);
+  if (standard < 0)
+    standard += rc.alternatives_count;
+  rc.standard = *(rc.alternatives + standard);
 }
 
 
