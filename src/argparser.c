@@ -165,7 +165,6 @@ long args_options_size;
 // HashMap<String, String[]> opts = new HashMap<String, String[]>();
 
 
-
 /**
  * Constructor.
  * The short description is printed on same line as the program name
@@ -237,6 +236,33 @@ extern void args_dispose()
       args_freequeue = null;
     }
 }
+
+
+/*
+args_get_options_count()
+args_options_get_help(long)
+args_options_get_alternatives_count(long)
+args_options_get_alternatives(long)
+args_options_get_argument(long)
+args_options_get_type(long)
+args_options_get_standard(long)
+
+args_get_opts()
+args_get_opts_count()
+args_opts_has(char*)
+args_opts_new(char*)
+args_opts_append(char*)
+args_opts_clear(char*)
+args_opts_get(char*)
+args_opts_put(char*, ::args_opts_get(char*))
+args_opts_used(char*)
+
+args_get_optmap()
+args_get_optmap_count()
+args_optmap_contains(char*)
+args_optmap_get_standard(char*)
+args_optmap_get_type(char*)
+*/
 
 
 /**
@@ -427,8 +453,8 @@ extern long args_test_allowed(char** allowed, long allowed_count)
   long rc = true, _a, _o;
   
   sort(allowed, _a = allowed_count);
-  opts = args_get_opts(); /* TODO */
-  sort(opts, _o = args_get_opts_count()); /* TODO */
+  opts = args_get_opts();
+  sort(opts, _o = args_get_opts_count());
   
   a = allowed + _a;
   o = opts + _o;
@@ -436,10 +462,10 @@ extern long args_test_allowed(char** allowed, long allowed_count)
   while (opts != o)
     {
       if ((allowed == a) || (cmp(*opts, *allowed) < 0))
-	if (args_opts_used(*opt)) /* TODO */
+	if (args_opts_used(*opt))
 	  {
 	    fprintf(args_out, "%s: option used out of context: %s", args_program, *opts);
-	    char* std = args_optmap_get_std(*opt); /* TODO */
+	    char* std = args_optmap_get_standard(*opt);
 	    if (cmp(std, *opt) != 0)
 	      fprintf(args_out, "(%s)", std);
 	    fprintf(args_out, "\n");
@@ -493,7 +519,7 @@ extern long args_test_exclusiveness(char** exclusives, long exclusives_count)
       fprintf(args_out, "%s: conflicting options:", args_program);
       for (; i < used_ptr; i++)
 	{
-	  std = args_optmap_get_std(*(used + i));
+	  std = args_optmap_get_standard(*(used + i));
 	  if (cmp(*(used + i), std) == 0)
 	    fprintf(args_out, " %s", *(used + i));
 	  else
@@ -514,13 +540,12 @@ extern long args_test_exclusiveness(char** exclusives, long exclusives_count)
  */
 extern void args_support_alternatives()
 {
-  char** opts = args_get_optmap(); /* TODO */
-  long n = args_get_optmap_count(); /* TODO */
+  char** opts = args_get_optmap();
+  long n = args_get_optmap_count();
   long i;
   
   for (i = 0; i < n; i++)
-    args_opts_put(*(opts + 1), args_opts_get(args_optmap_get_std(*opt)));
-    /* TODO */                 /* TODO */
+    args_opts_put(*(opts + 1), args_opts_get(args_optmap_get_standard(*opt)));
 }
 
 
@@ -529,7 +554,7 @@ extern void args_support_alternatives()
  */
 extern void args_help()
 {
-  long maxfirstlen = 0, count = 0, copts = args_get_options_count(); /* TODO */
+  long maxfirstlen = 0, count = 0, copts = args_get_options_count();
   char* dash = args_linuxvt ? "-" : "—";
   char* empty;
   char** lines;
@@ -574,12 +599,12 @@ extern void args_help()
     long i = 0;
     for (i = 0; i < copts; i++)
       {
-	if (args_options_get_help(i) == null) /* TODO */
+	if (args_options_get_help(i) == null)
 	  continue;
-	if (args_options_get_alternatives_count(i) > 1) /* TODO */
+	if (args_options_get_alternatives_count(i) > 1)
 	  {
 	    long n = 0;
-	    char* first = *(args_options_get_alternatives(i)); /* TODO */
+	    char* first = *(args_options_get_alternatives(i));
 	    while (*(first + n))
 	      n++;
 	    if (maxfirstlen < n)
@@ -611,10 +636,10 @@ extern void args_help()
 	if (args_options_get_help(i) == null)
 	  continue;
 	l = 0;
-	arg = *(args_options_get_argument(i)); /* TODO */
-	first = *(args_options_get_alternatives(i)); /* TODO */
-	last = *(args_options_get_alternatives(i) + args_options_get_alternatives_count(i) - 1); /* TODO */
-	type = *(args_options_get_type(i)); /* TODO */
+	arg = *(args_options_get_argument(i));
+	first = *(args_options_get_alternatives(i));
+	last = *(args_options_get_alternatives(i) + args_options_get_alternatives_count(i) - 1);
+	type = *(args_options_get_type(i));
 	if (first == last)
 	  first = empty;
 	else
@@ -798,7 +823,7 @@ extern long args_parse(int argc, char** argv)
 	  {
 	    if (dontget > 0)
 	      dontget--;
-	    else if (args_optmap_contains(arg) == false) /* TODO */
+	    else if (args_optmap_contains(arg) == false)
 	      {
 		if (++args_unrecognised_count <= 5)
 		  fprintf(args_out, "%s: warning: unrecognised option %s\n", args_program, arg);
@@ -806,7 +831,7 @@ extern long args_parse(int argc, char** argv)
 	      }
 	    else
 	      {
-		long type = args_optmap_get_type(arg); /* TODO */
+		long type = args_optmap_get_type(arg);
 		long eq = 0;
 		if (type != ARGUMENTLESS)
 		  while (*(arg + eq) && (*(arg + eq) != '='))
@@ -906,13 +931,13 @@ extern long args_parse(int argc, char** argv)
     long i = 0;
     while (i < optptr)
       {
-	char* opt = args_optmap_get_std(*(optqueue + i));
+	char* opt = args_optmap_get_standard(*(optqueue + i));
 	char* arg = argptr > i ? *(optqueue + i) : null;
 	i++;
-	if ((args_optmap_contains(opt) == false) || (args_opts_has(opt)/*TODO*/ == false))
-	  args_opts_new(opt); /*TODO*/
+	if ((args_optmap_contains(opt) == false) || (args_opts_has(opt) == false))
+	  args_opts_new(opt);
 	if (argptr >= i)
-	  args_opts_append(opt, arg); /*TODO*/
+	  args_opts_append(opt, arg);
       }
   }
   
@@ -921,11 +946,11 @@ extern long args_parse(int argc, char** argv)
     for (; i < n; i++)
       if (args_options_get_type(i) == VARIADIC)
 	{
-	  char* std = args_options_get_standard(i); /*TODO*/
+	  char* std = args_options_get_standard(i);
 	  if (args_opts_has(std))
 	    {
 	      if (*(args_opts_get(std)) == null)
-		args_opts_clear(std); /*TODO*/
+		args_opts_clear(std);
 	      for (j = 0; j < args_files_count; j++)
 		args_opts_append(std, *(args_files + j));
 	      args_files_count = 0;
