@@ -42,64 +42,9 @@ static long cmp(char* a, char* b);
 static long args_linuxvt;
 
 /**
- * The name of the executed command
- */
-char* args_program;
-
-/**
  * Whether to free the member of `args_program`
  */
 static long args_program_dispose;
-
-/**
- * Short, single-line, description of the program
- */
-char* args_description;
-
-/**
- * Formated, multi-line, usage text, `null` if none
- */
-char* args_usage;
-
-/**
- * Long, multi-line, description of the program, `null` if none
- */
-char* args_longdescription;
-
-/**
- * The error output stream
- */
-FILE* args_out;
-
-/**
- * The passed arguments
- */
-char** args_arguments;
-
-/**
- * The number of passed arguments
- */
-long args_arguments_count;
-
-/**
- * The number of unrecognised arguments
- */
-long args_unrecognised_count;
-
-/**
- * The concatination of `files` with blankspaces as delimiters, `null` if no files
- */
-char* args_message;
-
-/**
- * The arguments passed that is not tied to an option
- */
-char** args_files;
-
-/**
- * The number of elements in `args_files`
- */
-long args_files_count;
 
 /**
  * Queue of objects that needs to be freed on dispose

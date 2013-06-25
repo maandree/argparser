@@ -100,3 +100,60 @@ typedef struct
 } args_Array;
 
 
+
+/**
+ * The name of the executed command
+ */
+char* args_program;
+
+/**
+ * Short, single-line, description of the program
+ */
+char* args_description;
+
+/**
+ * Formated, multi-line, usage text, `null` if none
+ */
+char* args_usage;
+
+/**
+ * Long, multi-line, description of the program, `null` if none
+ */
+char* args_longdescription;
+
+/**
+ * The error output stream
+ */
+FILE* args_out;
+
+/**
+ * The passed arguments
+ */
+char** args_arguments;
+
+/**
+ * The number of passed arguments
+ */
+long args_arguments_count;
+
+/**
+ * The number of unrecognised arguments
+ */
+long args_unrecognised_count;
+
+/**
+ * The concatination of `files` with blankspaces as delimiters, `null` if no files
+ */
+char* args_message;
+
+/**
+ * The arguments passed that is not tied to an option
+ */
+char** args_files;
+
+/**
+ * The number of elements in `args_files`
+ */
+long args_files_count;
+
+
