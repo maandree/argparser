@@ -98,6 +98,11 @@ char** args_files;
  */
 long args_files_count;
 
+/**
+ * Queue of objects that needs to be freed on dispose
+ */
+void** args_freequeue;
+
 // Options, in order
 // ArrayList<Option> options = new ArrayList<Option>();
 
@@ -145,6 +150,8 @@ extern void args_init(char* description, char* usage, char* longdscription, char
   args_arguments_count = args_unrecognised_count = args_files_count = 0;
   args_files = args_arguments = null;
   args_message = null;
+  args_freequeue = null;
+  args_freeptr = 0;
 }
 
 
@@ -163,6 +170,14 @@ extern void args_dispose()
   args_files = null;
   args_message = null;
   args_program_dispose = false;
+  
+  if (args_freequeue != null)
+    {
+      for (args_freeptr -= 1; args_freeptr >= 0; args_freeptr--)
+	free(*(args_freequeue + args_freeptr));
+      free(args_freequeue);
+      args_freequeue = null;
+    }
 }
 
 
@@ -640,11 +655,11 @@ extern long args_parse(int argc, char** argv)
 {
   char** argend = argv + argc;
   long dashed = false, tmpdashed = false, get = 0, dontget = 0, rc = true;
-  long argptr = 0, optptr = 0, freeptr = 0, queuesize = argc - 1;
+  long argptr = 0, optptr = 0, queuesize = argc - 1;
   char** argqueue;
   char** optqueue;
-  char** freequeue;
   
+  args_freeptr = 0;
   args_unrecognised_count = 0;
   args_arguments_count = argc - 1;
   args_arguments = ++argv;
@@ -665,9 +680,9 @@ extern long args_parse(int argc, char** argv)
   
   argv = args_arguments;
   
-  argqueue  = (char**)malloc(queuesize * sizeof(char*));
-  optqueue  = (char**)malloc(queuesize * sizeof(char*));
-  freequeue = (char**)malloc(queuesize * sizeof(char*));
+  argqueue       = (char**)malloc(queuesize * sizeof(char*));
+  optqueue       = (char**)malloc(queuesize * sizeof(char*));
+  args_freequeue = (void**)malloc(queuesize * sizeof(void*));
   
   while (argv != argend)
     {
@@ -722,7 +737,7 @@ extern long args_parse(int argc, char** argv)
 		      {
 			*(optqueue + optptr++) = arg_opt;
 			*(argqueue + argptr++) = arg + eq + 1;
-			*(freequeue + freeptr++) = arg_opt;
+			*(args_freequeue + args_freeptr++) = arg_opt;
 			if (type == VARIADIC)
 			  dashed = true;
 		      }
@@ -761,7 +776,7 @@ extern long args_parse(int argc, char** argv)
 		if (args_optmap_contains(narg))
 		  {
 		    long type = args_optmap_get_type(narg);
-		    *(freequeue + freeptr++) = narg;
+		    *(args_freequeue + args_freeptr++) = narg;
 		    *(optqueue + optptr++) = narg;
 		    if (type == ARGUMENTLESS)
 		      *(argqueue + argptr++) = null;
@@ -829,12 +844,8 @@ extern long args_parse(int argc, char** argv)
 	}
   }
   
-  for (freeptr -= 1; freeptr >= 0; freeptr--) /* TODO freequeue should be freed in args_dispose */
-    free(*(freequeue + freeptr));
-  
   free(argqueue);
   free(optqueue);
-  free(freequeue);
   
   args_message = null;
   if (args_files_count > 0)
