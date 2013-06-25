@@ -354,21 +354,144 @@ extern char* args_options_get_help(long index)
   return (*(args_options + index)).help;
 }
 
-/*
-TODO
 
-args_map_get(args_optmap, name)
+/**
+ * Gets the available options
+ * 
+ * @return  The available options
+ */
+extern char** args_get_opts()
+{
+  return args_opts.keys;
+}
 
-args_get_opts()
-args_get_opts_count()
-args_opts_contains(char*)
-args_opts_new(char*)
-args_opts_append(char*)
-args_opts_clear(char*)
-args_opts_get(char*)
-args_opts_put(char*, ::args_opts_get(char*))
-args_opts_used(char*)
-*/
+/**
+ * Gets the number of available options
+ * 
+ * @return  The number of available options
+ */
+extern long args_get_opts_count()
+{
+  return args_opts.key_count;
+}
+
+/**
+ * Gets whether an option is available
+ * 
+ * @param   name  The option
+ * @return        Whether an option is available
+ */
+extern long args_opts_contains(char* name)
+{
+  return args_map_get(&args_opts, name) != null;
+}
+
+/**
+ * Initialise an option
+ * 
+ * @param  name  The option
+ */
+extern void args_opts_new(char* name)
+{
+  args_opts_put(name, null);
+  args_opts_put_count(name, 0);
+}
+
+/**
+ * Appends a value to an option
+ * 
+ * @param  name   The option
+ * @param  value  The new value
+ */
+extern void args_opts_append(char* name, char* value)
+{
+  long size = args_opts_get_count(name) + 1;
+  char** values = args_opts_get(name);
+  if (values == null)
+    {
+      char** array = (char**)malloc(sizeof(char*));
+      *array = value;
+      args_opts_put(name, array);
+    }
+  else
+    {
+      long address = (long)(void*)values;
+      values = realloc(values, size);
+      *(values + size - 1) = value;
+      if ((long)(void*)values != address)
+	args_opts_put(name, values)
+    }
+  args_opts_put_count(name, size);
+}
+
+/**
+ * Removes all values from an option
+ * 
+ * @param  name  The option
+ */
+extern void args_opts_clear(char* name)
+{
+  char** value = args_opts_get(name);
+  if (value != null)
+    free(value);
+  args_opts_new(name);
+}
+
+/**
+ * Gets the values for an option
+ * 
+ * @param   name  The option
+ * @return        The values
+ */
+extern char** args_opts_get(char* name)
+{
+  /* TODO */
+}
+
+/**
+ * Gets the number of values for an option
+ * 
+ * @param   name  The option
+ * @return        The number of values
+ */
+extern long args_opts_get_count(char* name)
+{
+  /* TODO */
+}
+
+/**
+ * Sets the values for an option
+ * 
+ * @param  name   The option
+ * @param  count  The values
+ */
+extern void args_opts_put(char* name, char** values)
+{
+  /* TODO */
+}
+
+/**
+ * Sets the number of values for an option
+ * 
+ * @param  name   The option
+ * @param  count  The number of values
+ */
+extern void args_opts_put_count(char* name, long count)
+{
+  /* TODO */
+}
+
+/**
+ * Checks whether an option is used
+ * 
+ * @param   name  The option
+ * @return        Whether the option is used
+ */
+extern long args_opts_used(char* name)
+{
+  return args_opts_put_count(name) > 0;
+}
+
 
 /**
  * Gets all alternativ names that exists for all options combined
@@ -391,6 +514,17 @@ extern long args_get_optmap_count()
 }
 
 /**
+ * Maps alternative name for a option
+ * 
+ * @param  name   The option's alternative name
+ * @param  index  The option's index
+ */
+extern void args_optmap_put(char* name, long index)
+{
+  return args_map_put(&args_optmap, name, (void*)(index + 1));
+}
+
+/**
  * Gets the option with a specific alternative name
  * 
  * @param   name  The option's alternative name
@@ -409,7 +543,7 @@ extern args_Option args_optmap_get(char* name)
  */
 extern long args_optmap_get_index(char* name)
 {
-  return (long)(args_map_get(args_optmap, name));
+  return (long)(args_map_get(&args_optmap, name)) - 1;
 }
 
 /**
@@ -462,6 +596,7 @@ extern void args_add_option(args_Option option, char* help)
     for (i; i < n; i++)
       args_optmap_put(*(option->alternatives + i), args_options_count);
     args_opts_put(option->standard, null);
+    args_opts_put_count(option->standard, 0);
     *(args_options + args_options_count) = option;
     (*(args_options + args_options_count++)).help = help;
   }
@@ -709,7 +844,11 @@ extern void args_support_alternatives()
   long i;
   
   for (i = 0; i < n; i++)
-    args_opts_put(*(opts + 1), args_opts_get(args_optmap_get_standard(*opt)));
+    {
+      char* std = args_optmap_get_standard(*opt);
+      args_opts_put(*(opts + 1), args_opts_get(std));
+      args_opts_put_count(*(opts + 1), args_opts_get_count(std));
+    }
 }
 
 
@@ -1180,7 +1319,6 @@ static long cmp(char* a, char* b)
   return *a < *b ? -1 : (*a > *b ? 1 : 0);
 }
 
-
 /**
  * Naïve merge sort is best merge sort in C
  * 
@@ -1217,7 +1355,6 @@ static void _sort(char** list, long count, char** temp)
     *temp = *list;
 }
 
-
 /**
  * Naïve merge sort is best merge sort in C
  * 
@@ -1230,4 +1367,13 @@ static void sort(char** list, long count)
   _sort(list, count, temp);
   free(temp);
 }
+
+
+/*
+TODO
+
+void* args_map_get(*args_Map, char*)
+void args_map_put(*args_Map, char*, void*)
+void args_map_free(*args_Map)
+*/
 
