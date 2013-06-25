@@ -84,7 +84,7 @@ static args_Map args_opts;
 
 
 /**
- * Constructor.
+ * Initialiser.
  * The short description is printed on same line as the program name
  * 
  * @param  description      Short, single-line, description of the program
