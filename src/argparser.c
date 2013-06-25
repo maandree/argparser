@@ -238,46 +238,98 @@ extern void args_dispose()
 }
 
 
+/**
+ * Gets an array of all options
+ * 
+ * @return  All options
+ */
 extern args_Option* args_get_options()
 {
   return args_options;
 }
 
+/**
+ * Gets the number of elements in the array returned by `args_get_options`
+ * 
+ * @return  The number of elements in the array returned by `args_get_options`
+ */
 extern long args_get_options_count()
 {
   return args_options_count;
 }
 
+/**
+ * Gets the option with a specific index
+ * 
+ * @param   index  The option's index
+ * @return         The option
+ */
 extern args_Option args_options_get(long index)
 {
   return *(args_options + index);
 }
 
+/**
+ * Gets the type of a option with a specific index
+ * 
+ * @param   index  The option's index
+ * @return         The option's type
+ */
 extern long args_options_get_type(long index)
 {
   return (*(args_options + index)).type;
 }
 
+/**
+ * Gets the number of alternative option names for a option with a specific index
+ * 
+ * @param   index  The option's index
+ * @return         The option's number of alternative option names
+ */
 extern long args_options_get_alternatives_count(long index)
 {
   return (*(args_options + index)).alternatives_count;
 }
 
+/**
+ * Gets the alternative option names for a option with a specific index
+ * 
+ * @param   index  The option's index
+ * @return         The option's alternative option names
+ */
 extern char** args_options_get_alternatives(long index)
 {
   return (*(args_options + index)).alternatives;
 }
 
+/**
+ * Gets the argument name for a option with a specific index
+ * 
+ * @param   index  The option's index
+ * @return         The option's argument name
+ */
 extern char* args_options_get_argument(long index)
 {
   return (*(args_options + index)).argument;
 }
 
+/**
+ * Gets the standard option name for a option with a specific index
+ * 
+ * @param   index  The option's index
+ * @return         The option's standard option name
+ */
 extern char* args_options_get_standard(long index)
 {
   return (*(args_options + index)).standard;
 }
 
+/**
+ * Gets the help text for a option with a specific index
+ * 
+ * @param   index  The option's index
+ * @return         The option's help text
+ */
 extern char* args_options_get_help(long index)
 {
   return (*(args_options + index)).help;
@@ -286,7 +338,7 @@ extern char* args_options_get_help(long index)
 /*
 args_get_opts()
 args_get_opts_count()
-args_opts_has(char*)
+args_opts_contains(char*)
 args_opts_new(char*)
 args_opts_append(char*)
 args_opts_clear(char*)
@@ -971,7 +1023,7 @@ extern long args_parse(int argc, char** argv)
 	char* opt = args_optmap_get_standard(*(optqueue + i));
 	char* arg = argptr > i ? *(optqueue + i) : null;
 	i++;
-	if ((args_optmap_contains(opt) == false) || (args_opts_has(opt) == false))
+	if ((args_optmap_contains(opt) == false) || (args_opts_contains(opt) == false))
 	  args_opts_new(opt);
 	if (argptr >= i)
 	  args_opts_append(opt, arg);
@@ -984,7 +1036,7 @@ extern long args_parse(int argc, char** argv)
       if (args_options_get_type(i) == VARIADIC)
 	{
 	  char* std = args_options_get_standard(i);
-	  if (args_opts_has(std))
+	  if (args_opts_contains(std))
 	    {
 	      if (*(args_opts_get(std)) == null)
 		args_opts_clear(std);
@@ -1036,9 +1088,9 @@ extern long args_parse(int argc, char** argv)
 /**
  * Compare two strings
  * 
- * @param  a  -1 if returned if this sting is the alphabetically lesser one
- * @param  b   1 if returned if this sting is the alphabetically lesser one
- * @return    0 is returned if the two string are identical, other -1 or 1 is returned
+ * @param   a  -1 if returned if this sting is the alphabetically lesser one
+ * @param   b   1 if returned if this sting is the alphabetically lesser one
+ * @return     0 is returned if the two string are identical, other -1 or 1 is returned
  */
 static long cmp(char* a, char* b)
 {
