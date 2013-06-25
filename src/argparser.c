@@ -272,6 +272,18 @@ extern void args_dispose()
       free(args_freequeue);
       args_freequeue = null;
     }
+  
+  if (args_optmap.keys != null)
+    free(args_map_free(&args_optmap));
+  
+  if (args_opts.keys != null)
+    {
+      void** freethis = args_map_free(&args_opts);
+      long i;
+      while (*(freethis + i))
+	free(*(freethis + i++));
+      free(freethis);
+    }
 }
 
 
