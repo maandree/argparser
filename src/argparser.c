@@ -79,7 +79,7 @@ typedef struct
 /**
  * Whether the Linux VT is being used
  */
-long args_linuxvt;
+static long args_linuxvt;
 
 /**
  * The name of the executed command
@@ -89,7 +89,7 @@ char* args_program;
 /**
  * Whether to free the member of `args_program`
  */
-long args_program_dispose;
+static long args_program_dispose;
 
 /**
  * Short, single-line, description of the program
@@ -144,22 +144,27 @@ long args_files_count;
 /**
  * Queue of objects that needs to be freed on dispose
  */
-void** args_freequeue;
+static void** args_freequeue;
+
+/**
+ * The number of elements in `args_freequeue`
+ */
+static long args_freeptr;
 
 /**
  * Options, in order
  */
-args_Option* args_options;
+static args_Option* args_options;
 
 /**
  * Number of elements in `args_options`
  */
-long args_options_count;
+static long args_options_count;
 
 /**
  * Number of elements for which `args_options` is allocated
  */
-long args_options_size;
+static long args_options_size;
 
 // Option map
 // HashMap<String, Option> optmap = new HashMap<String, Option>();
