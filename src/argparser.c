@@ -124,8 +124,8 @@ extern void args_init(char* description, char* usage, char* longdscription, char
   args_options_count = 0;
   args_options_size = 64;
   args_options = (args_Option*)malloc(args_options_size * sizeof(args_Option));
-  args_map_init(&optmap);
-  args_map_init(&opts);
+  map_init(&optmap);
+  map_init(&opts);
 }
 
 
@@ -157,11 +157,11 @@ extern void args_dispose()
     }
   
   if (args_optmap.keys != null)
-    free(args_map_free(&args_optmap));
+    free(map_free(&args_optmap));
   
   if (args_opts.keys != null)
     {
-      void** freethis = args_map_free(&args_opts);
+      void** freethis = map_free(&args_opts);
       long i;
       while (*(freethis + i))
 	free(*(freethis + i++));
@@ -373,7 +373,7 @@ extern long args_get_opts_count()
  */
 extern long args_opts_contains(char* name)
 {
-  return args_map_get(&args_opts, name) != null;
+  return map_get(&args_opts, name) != null;
 }
 
 /**
@@ -435,7 +435,7 @@ extern void args_opts_clear(char* name)
  */
 extern char** args_opts_get(char* name)
 {
-  args_Array* value = args_map_get(args_opts, name);
+  args_Array* value = map_get(args_opts, name);
   if (value == null)
     return null;
   return value->values;
@@ -449,7 +449,7 @@ extern char** args_opts_get(char* name)
  */
 extern long args_opts_get_count(char* name)
 {
-  args_Array* value = args_map_get(args_opts, name);
+  args_Array* value = map_get(args_opts, name);
   if (value == null)
     return 0;
   return value->count;
@@ -463,12 +463,12 @@ extern long args_opts_get_count(char* name)
  */
 extern void args_opts_put(char* name, char** values)
 {
-  args_Array* value = args_map_get(args_opts, name);
+  args_Array* value = map_get(args_opts, name);
   if (value == null)
     {
       value = (args_Array*)malloc(sizeof(args_Array));
       value->values = values;
-      args_map_put(args_opts, name, value);
+      map_put(args_opts, name, value);
     }
   else
     value->values = values;
@@ -482,12 +482,12 @@ extern void args_opts_put(char* name, char** values)
  */
 extern void args_opts_put_count(char* name, long count)
 {
-  args_Array* value = args_map_get(args_opts, name);
+  args_Array* value = map_get(args_opts, name);
   if (value == null)
     {
       value = (args_Array*)malloc(sizeof(args_Array));
       value->count = count;
-      args_map_put(args_opts, name, value);
+      map_put(args_opts, name, value);
     }
   else
     value->count = count;
@@ -533,7 +533,7 @@ extern long args_get_optmap_count()
  */
 extern void args_optmap_put(char* name, long index)
 {
-  return args_map_put(&args_optmap, name, (void*)(index + 1));
+  return map_put(&args_optmap, name, (void*)(index + 1));
 }
 
 /**
@@ -555,7 +555,7 @@ extern args_Option args_optmap_get(char* name)
  */
 extern long args_optmap_get_index(char* name)
 {
-  return (long)(args_map_get(&args_optmap, name)) - 1;
+  return (long)(map_get(&args_optmap, name)) - 1;
 }
 
 /**
@@ -1384,9 +1384,9 @@ static void sort(char** list, long count)
 /*
 TODO
 
-void args_map_init(*args_Map)
-void* args_map_get(*args_Map, char*)
-void args_map_put(*args_Map, char*, void*)
-void** args_map_free(*args_Map)
+void map_init(*args_Map)
+void* map_get(*args_Map, char*)
+void map_put(*args_Map, char*, void*)
+void** map_free(*args_Map)
 */
 
