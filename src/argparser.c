@@ -85,6 +85,24 @@ typedef struct
 } args_Map; /*TODO*/
 
 
+/**
+ * Array with associated length
+ */
+typedef struct
+{
+  /**
+   * The values
+   */
+  void** values;
+  
+  /**
+   * The length of `values`
+   */
+  long count;
+  
+} args_Array
+
+
 
 /**
  * Whether the Linux VT is being used
@@ -445,7 +463,10 @@ extern void args_opts_clear(char* name)
  */
 extern char** args_opts_get(char* name)
 {
-  /* TODO */
+  args_Array* value = args_map_get(args_opts, name);
+  if (value == null)
+    return null;
+  return value->values;
 }
 
 /**
@@ -456,7 +477,10 @@ extern char** args_opts_get(char* name)
  */
 extern long args_opts_get_count(char* name)
 {
-  /* TODO */
+  args_Array* value = args_map_get(args_opts, name);
+  if (value == null)
+    return 0;
+  return value->count;
 }
 
 /**
@@ -467,7 +491,15 @@ extern long args_opts_get_count(char* name)
  */
 extern void args_opts_put(char* name, char** values)
 {
-  /* TODO */
+  args_Array* value = args_map_get(args_opts, name);
+  if (value == null)
+    {
+      value = (args_Array*)malloc(sizeof(args_Array));
+      value->values = values;
+      args_map_put(args_opts, name, value);
+    }
+  else
+    value->values = values;
 }
 
 /**
@@ -478,7 +510,15 @@ extern void args_opts_put(char* name, char** values)
  */
 extern void args_opts_put_count(char* name, long count)
 {
-  /* TODO */
+  args_Array* value = args_map_get(args_opts, name);
+  if (value == null)
+    {
+      value = (args_Array*)malloc(sizeof(args_Array));
+      value->count = count;
+      args_map_put(args_opts, name, value);
+    }
+  else
+    value->count = count;
 }
 
 /**
@@ -1374,6 +1414,6 @@ TODO
 
 void* args_map_get(*args_Map, char*)
 void args_map_put(*args_Map, char*, void*)
-void args_map_free(*args_Map)
+void** args_map_free(*args_Map)
 */
 
