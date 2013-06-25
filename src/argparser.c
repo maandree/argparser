@@ -245,7 +245,7 @@ extern void args_dispose()
  * @param  option  The option
  * @param  help    Help text, multi-line, `null` if hidden
  */
-extern void args_add_option(args_Option* option, char* help)
+extern void args_add_option(args_Option option, char* help)
 {
   if (args_options_count == args_options_size)
     {
@@ -265,7 +265,7 @@ extern void args_add_option(args_Option* option, char* help)
     for (i; i < n; i++)
       args_optmap_put(*(option->alternatives + i), args_options_count);
     args_opts_put(option->standard, null);
-    *(args_options + args_options_count) = *option;
+    *(args_options + args_options_count) = option;
     (*(args_options + args_options_count++)).help = help;
   }
 }
