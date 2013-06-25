@@ -20,6 +20,7 @@
 #include <stdio.h>
 
 
+
 #define true  1
 #define false 0
 #define null  0
@@ -27,6 +28,7 @@
 #define ARGUMENTLESS 0
 #define ARGUMENTED   1
 #define VARIADIC     2
+
 
 
 static void sort(char** list, long count);
@@ -163,6 +165,7 @@ long args_options_size;
 
 // Parsed arguments, a map from option to arguments, `null` if not used, add one `null` element per argumentless use.
 // HashMap<String, String[]> opts = new HashMap<String, String[]>();
+
 
 
 /**
