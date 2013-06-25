@@ -357,10 +357,62 @@ args_opts_used(char*)
 
 args_get_optmap()
 args_get_optmap_count()
-args_optmap_contains(char*)
-args_optmap_get_standard(char*)
-args_optmap_get_type(char*)
 */
+
+/**
+ * Gets the option with a specific alternative name
+ * 
+ * @param   name  The option's alternative name
+ * @return        The option
+ */
+extern args_Option args_optmap_get(char* name)
+{
+  return *(args_options + args_optmap_get_index(name));
+}
+
+/**
+ * Gets the index of a option with a specific alternative name
+ * 
+ * @param   name  The option's alternative name
+ * @return        The option's index, negative if not found
+ */
+/*extern long args_optmap_get_index(char* name)
+{
+  TODO
+}*/
+
+/**
+ * Checks whether an options with a specific alternative name exists
+ * 
+ * @param   name  One of the names of the option
+ * @return        Whether the option exists
+ */
+extern long args_optmap_contains(char* name)
+{
+  return args_optmap_get_index(name) >= 0;
+}
+
+/**
+ * Gets the type of a option with a specific alternative name
+ * 
+ * @param   name  The option's alternative name
+ * @return        The option's type
+ */
+extern long args_optmap_get_type(char* name)
+{
+  return (*(args_options + args_optmap_get_index(name))).type;
+}
+
+/**
+ * Gets the standard option name for a option with a specific alternative name
+ * 
+ * @param   name  The option's alternative name
+ * @return        The option's standard option name
+ */
+extern char* args_optmap_get_standard(char* name)
+{
+  return (*(args_options + args_optmap_get_index(name))).standard;
+}
 
 
 /**
@@ -372,17 +424,7 @@ args_optmap_get_type(char*)
 extern void args_add_option(args_Option option, char* help)
 {
   if (args_options_count == args_options_size)
-    {
-      long i = args_options_size << 1;
-      args_Option* new = (args_Option*)malloc(i * sizeof(args_Option));
-      for (i = 0; i < args_options_size; i++)
-	{
-	  *(new + i) = *(args_options + i)
-	}
-      args_options_size <<= 1;
-      free(args_options);
-      args_options = new;
-    }
+    args_options = (args_Option*)realloc(args_options, (args_options_size <<= 1) * sizeof(args_Option));
   
   {
     long i = 0, n = option->alternatives_count;
@@ -471,7 +513,7 @@ extern char* args_parent_name(long levels)
     return null;
   i = 0;
   n = 0;
-  cmd = (char*)malloc(cmdsize = 128);
+  cmd = (char*)malloc((cmdsize = 128) * sizeof(char));
   for (;;)
     {
       n += fread(cmd, 1, 128, is);
@@ -479,14 +521,7 @@ extern char* args_parent_name(long levels)
 	if (*(cmd + i) == 0)
 	  break;
       if (i == n)
-	{
-	  char* tmp = (char*)malloc(cmdsize + 128);
-	  for (i = 0; i < n; i++)
-	    *(tmp + i) = *(cmd + i);
-	  cmdsize += 128;
-	  free(cmd);
-	  cmd = tmp;
-	}
+	cmd = (char*)realloc(cmd, (cmdsize + 128) * sizeof(char));
       else
 	break;
     }
