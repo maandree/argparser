@@ -75,7 +75,7 @@ typedef struct
   long key_count;
   
   /**
-   * Indefinite depth array with 17 elements per level, the last being the value at the position
+   * Indefinite depth array with 16 or 17 elements per level, the last being the value at the position. The first level has 17 elements and the levels alternates between 16 and 17 elements.
    */
   void** data;
   

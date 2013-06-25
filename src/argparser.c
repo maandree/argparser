@@ -33,7 +33,11 @@
 static void _sort(char** list, long count, char** temp);
 static void sort(char** list, long count);
 static long cmp(char* a, char* b);
-
+static void map_init(args_Map* map);
+static void* map_get(args_Map* map, char* key);
+static void map_put(args_Map* map, char* key, void* value);
+static void _map_free(void** level, long level_size);
+static void** map_free(args_Map* map);
 
 
 /**
@@ -1381,12 +1385,118 @@ static void sort(char** list, long count)
 }
 
 
-/*
-TODO
+/**
+ * Initialises a map
+ * 
+ * @param  map  The address of the map
+ */
+static void map_init(args_Map* map)
+{
+  long i;
+  void** level;
+  map->keys = null;
+  map->key_count = 0;
+  map->data = level = (void**)malloc(17 * sizeof(void*));
+  for (i = 0; i < 17; i++)
+    *(level + i) = null;
+}
 
-void map_init(*args_Map)
-void* map_get(*args_Map, char*)
-void map_put(*args_Map, char*, void*)
-void** map_free(*args_Map)
-*/
+/**
+ * Gets the value for a key in a map
+ * 
+ * @param   map  The address of the map
+ * @param   key  The key
+ * @return       The value, `null` if not found
+ */
+static void* map_get(args_Map* map, char* key)
+{
+  void** at = map->data;
+  while (*key)
+    {
+      long a = (long)((*key >> 4) & 15);
+      long b = (long)(*key & 15);
+      if (*(at + a))
+	at = (void**)*(at + a);
+      else
+	return null;
+      if (*(at + b))
+	at = (void**)*(at + b);
+      else
+	return null;
+    }
+  return *(at + 16);
+}
+
+/**
+ * Sets the value for a key in a map
+ * 
+ * @param  map    The address of the map
+ * @param  key    The key
+ * @param  value  The value, `null` to remove, however this does not unlist the key
+ */
+static void map_put(args_Map* map, char* key, void* value)
+{
+  long new = false;
+  void** at = map->data;
+  long i;
+  while (*key)
+    {
+      long a = (long)((*key >> 4) & 15);
+      long b = (long)(*key & 15);
+      if (*(at + a))
+	at = (void**)*(at + a);
+      else
+	{
+	  at = (void**)(*(at + a) = (void*)malloc(16 * sizeof(void*)));
+	  for (i = 0; i < 16; i++)
+	    *(at + i) = null;
+	  new = true;
+	}
+      if (*(at + b))
+	at = (void**)*(at + b);
+      else
+	{
+	  at = (void**)(*(at + a) = (void*)malloc(17 * sizeof(void*)));
+	  for (i = 0; i < 17; i++)
+	    *(at + i) = null;
+	  new = true;
+	}
+    }
+  *(at + 16) = value;
+  if (new)
+    map->keys = realloc(map->keys, (map->key_count + 1) * sizeof(char**));
+}
+
+/**
+ * Frees a level and all sublevels in a map
+ * 
+ * @param  level      The level
+ * @param  has_value  Whether the level can hold a value
+ */
+static void _map_free(void** level, long has_value)
+{
+  long i;
+  if (level == null)
+    return;
+  for (i = 0; i < 16; i++)
+    free(*(level + i));
+  if (has_value)
+    if (*(level + 16) != null)
+      free(*(level + 16));
+  free(level);
+}
+
+/**
+ * Frees the resources of a map
+ * 
+ * @param   map  The address of the map
+ * @return       `null`-terminated array of values that you may want to free, but do free this returend array
+ */
+static void** map_free(args_Map* map)
+{
+  if (map->keys != null)
+    free(map->keys);
+  map->keys = null;
+  _map_free(map->data, true);
+}
 
