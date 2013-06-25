@@ -194,11 +194,15 @@ static long args_options_count;
  */
 static long args_options_size;
 
-// Option map
-// HashMap<String, Option> optmap = new HashMap<String, Option>();
+/**
+ * Option map
+ */
+static args_Map args_optmap;
 
-// Parsed arguments, a map from option to arguments, `null` if not used, add one `null` element per argumentless use.
-// HashMap<String, String[]> opts = new HashMap<String, String[]>();
+/**
+ * Parsed arguments, a map from option to arguments, with one `null` element per argumentless use
+ */
+static args_Map args_opts;
 
 
 
@@ -243,6 +247,8 @@ extern void args_init(char* description, char* usage, char* longdscription, char
   args_options_count = 0;
   args_options_size = 64;
   args_options = (args_Option*)malloc(args_options_size * sizeof(args_Option));
+  args_map_init(&optmap);
+  args_map_init(&opts);
 }
 
 
@@ -1424,6 +1430,7 @@ static void sort(char** list, long count)
 /*
 TODO
 
+void args_map_init(*args_Map)
 void* args_map_get(*args_Map, char*)
 void args_map_put(*args_Map, char*, void*)
 void** args_map_free(*args_Map)
