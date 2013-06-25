@@ -238,15 +238,52 @@ extern void args_dispose()
 }
 
 
-/*
-args_get_options_count()
-args_options_get_help(long)
-args_options_get_alternatives_count(long)
-args_options_get_alternatives(long)
-args_options_get_argument(long)
-args_options_get_type(long)
-args_options_get_standard(long)
+extern args_Option* args_get_options()
+{
+  return args_options;
+}
 
+extern long args_get_options_count()
+{
+  return args_options_count;
+}
+
+extern args_Option args_options_get(long index)
+{
+  return *(args_options + index);
+}
+
+extern long args_options_get_type(long index)
+{
+  return (*(args_options + index)).type;
+}
+
+extern long args_options_get_alternatives_count(long index)
+{
+  return (*(args_options + index)).alternatives_count;
+}
+
+extern char** args_options_get_alternatives(long index)
+{
+  return (*(args_options + index)).alternatives;
+}
+
+extern char* args_options_get_argument(long index)
+{
+  return (*(args_options + index)).argument;
+}
+
+extern char* args_options_get_standard(long index)
+{
+  return (*(args_options + index)).standard;
+}
+
+extern char* args_options_get_help(long index)
+{
+  return (*(args_options + index)).help;
+}
+
+/*
 args_get_opts()
 args_get_opts_count()
 args_opts_has(char*)
