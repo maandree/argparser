@@ -19,3 +19,84 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
+
+
+/**
+ * Option structure
+ */
+typedef struct
+{
+  /**
+   * The type of the option, either of: `ARGUMENTLESS`, `ARGUMENTED`, `VARIADIC`
+   */
+  long type;
+  
+  /**
+   * Alterative option names
+   */
+  char** alternatives;
+  
+  /**
+   * Number of elements in `alternatives`
+   */
+  long alternatives_count;
+  
+  /**
+   * Standard option name
+   */
+  char* standard;
+  
+  /**
+   * Argument name, not for argumentless options
+   */
+  char* argument;
+  
+  /**
+   * Help text, multi-line
+   */
+  char* help;
+  
+} args_Option;
+
+
+/**
+ * char* to void* map structure
+ */
+typedef struct
+{
+  /**
+   * Available keys
+   */
+  char** keys;
+  
+  /**
+   * The number of available keys
+   */
+  long key_count;
+  
+  /**
+   * Indefinite depth array with 17 elements per level, the last being the value at the position
+   */
+  void** data;
+  
+} args_Map;
+
+
+/**
+ * Array with associated length
+ */
+typedef struct
+{
+  /**
+   * The values
+   */
+  void** values;
+  
+  /**
+   * The length of `values`
+   */
+  long count;
+  
+} args_Array;
+
+
