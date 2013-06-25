@@ -81,9 +81,22 @@ typedef struct
  */
 typedef struct
 {
+  /**
+   * Available keys
+   */
   char** keys;
+  
+  /**
+   * The number of available keys
+   */
   long key_count;
-} args_Map; /*TODO*/
+  
+  /**
+   * Indefinite depth array with 17 elements per level, the last being the value at the position
+   */
+  void** data;
+  
+} args_Map;
 
 
 /**
