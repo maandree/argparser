@@ -94,7 +94,7 @@ long args_program_dispose;
 /**
  * Short, single-line, description of the program
  */
-char* args_dscription;
+char* args_description;
 
 /**
  * Formated, multi-line, usage text, `null` if none
@@ -104,7 +104,7 @@ char* args_usage;
 /**
  * Long, multi-line, description of the program, `null` if none
  */
-char* args_longdscription;
+char* args_longdescription;
 
 /**
  * The error output stream
@@ -198,9 +198,9 @@ extern void args_init(char* description, char* usage, char* longdscription, char
       args_program = "?";
       args_program_dispose = false;
     }
-  args_dscription = description;
+  args_description = description;
   args_usage = usage;
-  args_longdscription = longdescription;
+  args_longdescription = longdescription;
   args_out = usestderr ? stderr : stdout;
   args_arguments_count = args_unrecognised_count = args_files_count = 0;
   args_files = args_arguments = null;
