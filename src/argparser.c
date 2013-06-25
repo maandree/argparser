@@ -100,7 +100,7 @@ typedef struct
    */
   long count;
   
-} args_Array
+} args_Array;
 
 
 
