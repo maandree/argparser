@@ -33,6 +33,46 @@ static void sort(char** list, long count);
 static long cmp(char* a, char* b);
 
 
+
+/**
+ * Option structure
+ */
+typedef struct
+{
+  /**
+   * The type of the option, either of: `ARGUMENTLESS`, `ARGUMENTED`, `VARIADIC`
+   */
+  long type;
+  
+  /**
+   * Alterative option names
+   */
+  char** alternatives;
+  
+  /**
+   * Number of elements in `alternatives`
+   */
+  long alternatives_count;
+  
+  /**
+   * Standard option name
+   */
+  char* standard;
+  
+  /**
+   * Argument name, not for argumentless options
+   */
+  char* argument;
+  
+  /**
+   * Help text, multi-line
+   */
+  char* help;
+  
+} args_Option;
+
+
+
 /**
  * Whether the Linux VT is being used
  */
@@ -103,13 +143,25 @@ long args_files_count;
  */
 void** args_freequeue;
 
-// Options, in order
-// ArrayList<Option> options = new ArrayList<Option>();
+/**
+ * Options, in order
+ */
+args_Option* args_options;
+
+/**
+ * Number of elements in `args_options`
+ */
+long args_options_count;
+
+/**
+ * Number of elements for which `args_options` is allocated
+ */
+long args_options_size;
 
 // Option map
 // HashMap<String, Option> optmap = new HashMap<String, Option>();
 
-// Parsed arguments, a map from option to arguments, null` if not used, add one `null` element per argumentless use.
+// Parsed arguments, a map from option to arguments, `null` if not used, add one `null` element per argumentless use.
 // HashMap<String, String[]> opts = new HashMap<String, String[]>();
 
 
@@ -152,6 +204,9 @@ extern void args_init(char* description, char* usage, char* longdscription, char
   args_message = null;
   args_freequeue = null;
   args_freeptr = 0;
+  args_options_count = 0;
+  args_options_size = 64;
+  args_options = (args_Option*)malloc(args_options_size * sizeof(args_Option));
 }
 
 
@@ -166,10 +221,13 @@ extern void args_dispose()
     free(args_message);
   if (args_program_dispose)
     free(args_program);
+  if (args_options != null)
+    free(args_options);
   
   args_files = null;
   args_message = null;
   args_program_dispose = false;
+  args_options = null;
   
   if (args_freequeue != null)
     {
@@ -178,6 +236,38 @@ extern void args_dispose()
       free(args_freequeue);
       args_freequeue = null;
     }
+}
+
+
+/**
+ * Adds an option
+ * 
+ * @param  option  The option
+ * @param  help    Help text, multi-line, `null` if hidden
+ */
+extern void args_add_option(args_Option* option, char* help)
+{
+  if (args_options_count == args_options_size)
+    {
+      long i = args_options_size << 1;
+      args_Option* new = (args_Option*)malloc(i * sizeof(args_Option));
+      for (i = 0; i < args_options_size; i++)
+	{
+	  *(new + i) = *(args_options + i)
+	}
+      args_options_size <<= 1;
+      free(args_options);
+      args_options = new;
+    }
+  
+  {
+    long i = 0, n = option->alternatives_count;
+    for (i; i < n; i++)
+      args_optmap_put(*(option->alternatives + i), args_options_count);
+    args_opts_put(option->standard, null);
+    *(args_options + args_options_count) = *option;
+    (*(args_options + args_options_count++)).help = help;
+  }
 }
 
 
