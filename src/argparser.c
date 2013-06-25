@@ -25,7 +25,7 @@
 #define false 0
 #define null  0
 
-/* Constants */
+/* Constants */ /* TODO */
 #define ARGUMENTLESS 0
 #define ARGUMENTED   1
 #define VARIADIC     2
@@ -73,6 +73,16 @@ typedef struct
   char* help;
   
 } args_Option;
+
+
+/**
+ * char* to void* map structure
+ */
+typedef struct
+{
+  char** keys;
+  long key_count;
+} args_Map; /*TODO*/
 
 
 
@@ -345,6 +355,10 @@ extern char* args_options_get_help(long index)
 }
 
 /*
+TODO
+
+args_map_get(args_optmap, name)
+
 args_get_opts()
 args_get_opts_count()
 args_opts_contains(char*)
@@ -354,10 +368,27 @@ args_opts_clear(char*)
 args_opts_get(char*)
 args_opts_put(char*, ::args_opts_get(char*))
 args_opts_used(char*)
-
-args_get_optmap()
-args_get_optmap_count()
 */
+
+/**
+ * Gets all alternativ names that exists for all options combined
+ * 
+ * @return  All alternativ names that exists for all options
+ */
+extern char** args_get_optmap()
+{
+  return args_optmap.keys;
+}
+
+/**
+ * Gets the number of elements returned by `args_get_optmap`
+ * 
+ * @return  The number of elements returned by `args_get_optmap`
+ */
+extern long args_get_optmap_count()
+{
+  return args_optmap.key_count;
+}
 
 /**
  * Gets the option with a specific alternative name
@@ -376,10 +407,10 @@ extern args_Option args_optmap_get(char* name)
  * @param   name  The option's alternative name
  * @return        The option's index, negative if not found
  */
-/*extern long args_optmap_get_index(char* name)
+extern long args_optmap_get_index(char* name)
 {
-  TODO
-}*/
+  return (long)(args_map_get(args_optmap, name));
+}
 
 /**
  * Checks whether an options with a specific alternative name exists
