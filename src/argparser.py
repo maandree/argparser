@@ -400,7 +400,7 @@ class ArgParser():
                 self.__print('\t%s' % (line))
             self.__print()
         
-        maxfirstlen = []
+        maxfirstlen = ['']
         for opt in self.__options:
             opt_alts = opt[1]
             opt_help = opt[3]
