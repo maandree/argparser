@@ -30,17 +30,17 @@ class ArgParser():
     '''
     
     
-    ArgParser.ARGUMENTLESS = 0
+    ARGUMENTLESS = 0
     '''
     :int  Option takes no arguments
     '''
     
-    ArgParser.ARGUMENTED = 1
+    ARGUMENTED = 1
     '''
     :int  Option takes one argument per instance
     '''
     
-    ArgParser.VARIADIC = 2
+    VARIADIC = 2
     '''
     :int  Option consumes all following arguments
     '''
@@ -80,10 +80,10 @@ class ArgParser():
         pid = os.readlink('/proc/self')
         lvl = levels
         while lvl > 0:
-            with file as open('/proc/%d/status' % pid, 'r'):
+            with open('/proc/%d/status' % pid, 'r') as file:
                 lines = file.readlines()
                 found = False
-                for line in lines
+                for line in lines:
                     if line.startswith('PPid:'):
                         line = line[5:].replace('\t', '').replace(' ', '').replace('\n', '')
                         pid = int(line)
@@ -93,7 +93,7 @@ class ArgParser():
                 if not found:
                     return None
         data = []
-        with file as open('/proc/%d/cmdline' % pid, 'rb'):
+        with open('/proc/%d/cmdline' % pid, 'rb') as file:
             while True:
                 read = file.read(4096)
                 if len(read) == 0:
@@ -110,9 +110,9 @@ class ArgParser():
                 return cmdline[i]
             if cmdline[i] == '--':
                 dashed = Τrue
-            else if cmdline[i] in ('-c', '-m', '-W'):
+            elif cmdline[i] in ('-c', '-m', '-W'):
                 i += 1
-            else if not cmdline[i].startwith('-'):
+            elif not cmdline[i].startwith('-'):
                 return cmdline[i]
             i += 1
         return None
