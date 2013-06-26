@@ -85,6 +85,21 @@ static args_Map args_optmap;
  */
 static args_Map args_opts;
 
+/**
+ * Used in `map_free` and `_map_free` to store found values that can be freed
+ */
+static void** args_map_values;
+
+/**
+ * The number of elements in `args_map_values`
+ */
+static long args_map_values_ptr;
+
+/**
+ * The size of `args_map_values`
+ */
+static long args_map_values_size;
+
 
 
 /**
@@ -1479,13 +1494,18 @@ static void map_put(args_Map* map, char* key, void* value)
 static void _map_free(void** level, long has_value)
 {
   long i;
+  void* value;
   if (level == null)
     return;
   for (i = 0; i < 16; i++)
     free(*(level + i));
   if (has_value)
-    if (*(level + 16) != null)
-      free(*(level + 16));
+    if ((value = *(level + 16)))
+      {
+	if (args_map_values_ptr == args_map_values_size)
+	  args_map_values = (void**)realloc(args_map_values_size <<= 1, sizeof(void*));
+	*(args_map_values + args_map_values_ptr++) = value;
+      }
   free(level);
 }
 
@@ -1493,13 +1513,21 @@ static void _map_free(void** level, long has_value)
  * Frees the resources of a map
  * 
  * @param   map  The address of the map
- * @return       `null`-terminated array of values that you may want to free, but do free this returend array
+ * @return       `null`-terminated array of values that you may want to free, but do free this returend array before running this function again
  */
 static void** map_free(args_Map* map)
 {
   if (map->keys != null)
     free(map->keys);
   map->keys = null;
+  
+  args_map_values_ptr = 0;
+  args_map_values_size = 64;
+  args_map_values = (void**)malloc(64 * sizeof(void*));
   _map_free(map->data, true);
+  if (args_map_values_ptr == args_map_values_size)
+    args_map_values = (void**)realloc(args_map_values_size + 1, sizeof(void*));
+  *(args_map_values + args_map_values_ptr) = null;
+  return args_map_values;
 }
 
