@@ -97,7 +97,7 @@ static args_Map args_opts;
  * @param  program          The name of the program, `null` for automatic
  * @param  usestderr        Whether to use stderr instead of stdout
  */
-extern void args_init(char* description, char* usage, char* longdscription, char* program, long usestderr)
+extern void args_init(char* description, char* usage, char* longdescription, char* program, long usestderr)
 {
   char* term = getenv("TERM");
   args_linuxvt = 0;
@@ -128,8 +128,8 @@ extern void args_init(char* description, char* usage, char* longdscription, char
   args_options_count = 0;
   args_options_size = 64;
   args_options = (args_Option*)malloc(args_options_size * sizeof(args_Option));
-  map_init(&optmap);
-  map_init(&opts);
+  map_init(&args_optmap);
+  map_init(&args_opts);
 }
 
 
@@ -413,7 +413,7 @@ extern void args_opts_append(char* name, char* value)
       values = realloc(values, size);
       *(values + size - 1) = value;
       if ((long)(void*)values != address)
-	args_opts_put(name, values)
+	args_opts_put(name, values);
     }
   args_opts_put_count(name, size);
 }
@@ -439,10 +439,10 @@ extern void args_opts_clear(char* name)
  */
 extern char** args_opts_get(char* name)
 {
-  args_Array* value = map_get(args_opts, name);
+  args_Array* value = (args_Array*)map_get(&args_opts, name);
   if (value == null)
     return null;
-  return value->values;
+  return (char**)value->values;
 }
 
 /**
@@ -453,7 +453,7 @@ extern char** args_opts_get(char* name)
  */
 extern long args_opts_get_count(char* name)
 {
-  args_Array* value = map_get(args_opts, name);
+  args_Array* value = (args_Array*)map_get(&args_opts, name);
   if (value == null)
     return 0;
   return value->count;
@@ -467,15 +467,15 @@ extern long args_opts_get_count(char* name)
  */
 extern void args_opts_put(char* name, char** values)
 {
-  args_Array* value = map_get(args_opts, name);
+  args_Array* value = (args_Array*)map_get(&args_opts, name);
   if (value == null)
     {
       value = (args_Array*)malloc(sizeof(args_Array));
-      value->values = values;
-      map_put(args_opts, name, value);
+      value->values = (void**)values;
+      map_put(&args_opts, name, value);
     }
   else
-    value->values = values;
+    value->values = (void**)values;
 }
 
 /**
@@ -486,12 +486,12 @@ extern void args_opts_put(char* name, char** values)
  */
 extern void args_opts_put_count(char* name, long count)
 {
-  args_Array* value = map_get(args_opts, name);
+  args_Array* value = (args_Array*)map_get(&args_opts, name);
   if (value == null)
     {
       value = (args_Array*)malloc(sizeof(args_Array));
       value->count = count;
-      map_put(args_opts, name, value);
+      map_put(&args_opts, name, value);
     }
   else
     value->count = count;
@@ -505,7 +505,7 @@ extern void args_opts_put_count(char* name, long count)
  */
 extern long args_opts_used(char* name)
 {
-  return args_opts_put_count(name) > 0;
+  return args_opts_get_count(name) > 0;
 }
 
 
@@ -608,11 +608,11 @@ extern void args_add_option(args_Option option, char* help)
     args_options = (args_Option*)realloc(args_options, (args_options_size <<= 1) * sizeof(args_Option));
   
   {
-    long i = 0, n = option->alternatives_count;
+    long i = 0, n = option.alternatives_count;
     for (i; i < n; i++)
-      args_optmap_put(*(option->alternatives + i), args_options_count);
-    args_opts_put(option->standard, null);
-    args_opts_put_count(option->standard, 0);
+      args_optmap_put(*(option.alternatives + i), args_options_count);
+    args_opts_put(option.standard, null);
+    args_opts_put_count(option.standard, 0);
     *(args_options + args_options_count) = option;
     (*(args_options + args_options_count++)).help = help;
   }
@@ -629,10 +629,10 @@ extern char* args_parent_name(long levels)
 {
   char pid[22]; /* 6 should be enough, but we want to be future proof */
   ssize_t pid_n = readlink("/proc/self", pid, 21);
-  long lvl = levels, i, j, cmdsize;
+  long lvl = levels, i, j, cmdsize, off;
   size_t n;
   FILE* is;
-  char* buf[35];
+  char buf[35];
   char* cmd;
   char* data;
   if (pid_n <= 0)
@@ -669,11 +669,10 @@ extern char* args_parent_name(long levels)
 			    while ((*(buf + i) == '\t') || (*(buf + i) == ' '))
 			      i++;
 			    j -= n = i;
-			    buf += n;
+			    off = n;
 			    for (i = 0; i < j; i++)
-			      *(pid + i) = *(buf + i);
+			      *(pid + i) = *(buf + off + i);
 			    *(pid + j) = 0;
-			    buf -= n;
 			    lvl--;
 			    break;
 			  }
@@ -777,11 +776,11 @@ extern long args_test_allowed(char** allowed, long allowed_count)
   while (opts != o)
     {
       if ((allowed == a) || (cmp(*opts, *allowed) < 0))
-	if (args_opts_used(*opt))
+	if (args_opts_used(*opts))
 	  {
 	    fprintf(args_out, "%s: option used out of context: %s", args_program, *opts);
-	    char* std = args_optmap_get_standard(*opt);
-	    if (cmp(std, *opt) != 0)
+	    char* std = args_optmap_get_standard(*opts);
+	    if (cmp(std, *opts) != 0)
 	      fprintf(args_out, "(%s)", std);
 	    fprintf(args_out, "\n");
 	    rc = false;
@@ -808,6 +807,7 @@ extern long args_test_exclusiveness(char** exclusives, long exclusives_count)
   char** used = (char**)malloc(args_get_opts_count() * sizeof(char*));
   char** e;
   char** o;
+  char** opts;
   char* std;
   long _e, _o;
   
@@ -820,12 +820,12 @@ extern long args_test_exclusiveness(char** exclusives, long exclusives_count)
   
   while ((opts != o) && (exclusives != e))
     {
-      while ((opts != o) && (cmp(*opts, *allowed) > 0))
-	opt++;
-      while ((allowed != a) && (cmp(*opts, *allowed) > 0))
-	allowed++;
-      if ((cmp(*opts, *allowed) == 0) && (args_opts_used(*opt)))
-	*(used + used_ptr++) = opt;
+      while ((opts != o) && (cmp(*opts, *exclusives) > 0))
+	opts++;
+      while ((exclusives != e) && (cmp(*opts, *exclusives) > 0))
+	exclusives++;
+      if ((cmp(*opts, *exclusives) == 0) && (args_opts_used(*opts)))
+	*(used + used_ptr++) = *opts;
       opts++;
     }
   
@@ -861,7 +861,7 @@ extern void args_support_alternatives()
   
   for (i = 0; i < n; i++)
     {
-      char* std = args_optmap_get_standard(*opt);
+      char* std = args_optmap_get_standard(*opts);
       args_opts_put(*(opts + 1), args_opts_get(std));
       args_opts_put_count(*(opts + 1), args_opts_get_count(std));
     }
@@ -1180,7 +1180,7 @@ extern long args_parse(int argc, char** argv)
 			if (++args_unrecognised_count <= 5)
 			  fprintf(args_out, "%s: warning: unrecognised option %s\n", args_program, arg);
 			rc = false;
-			free(arg_opts);
+			free(arg_opt);
 		      }
 		  }
 		else if (type == ARGUMENTED)
@@ -1304,9 +1304,9 @@ extern long args_parse(int argc, char** argv)
       *(args_message + --n) = 0;
     }
   
-  if (args_unrecognsed_count > 5)
+  if (args_unrecognised_count > 5)
     {
-      long more = args_unrecognsed_count - 5;
+      long more = args_unrecognised_count - 5;
       char* option_s = more == 1 ? "option" : "options";
       fprintf(args_out, "%s: warning: %i more unrecognised %s\n", args_program, more, option_s);
     }
