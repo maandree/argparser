@@ -656,7 +656,7 @@ extern char* args_parent_name(long levels)
 	}
       n = fread(data, 1, 2048, is);
       j = 0;
-      for (i = 0; i < n; i++)
+      for (i = 0; i < (long)n; i++)
 	{
 	  char c = *(data + i);
 	  if (c == '\n')
@@ -701,10 +701,10 @@ extern char* args_parent_name(long levels)
   for (;;)
     {
       n += fread(cmd, 1, 128, is);
-      for (; i < n; i++)
+      for (; i < (long)n; i++)
 	if (*(cmd + i) == 0)
 	  break;
-      if (i == n)
+      if (i == (long)n)
 	cmd = (char*)realloc(cmd, (cmdsize + 128) * sizeof(char));
       else
 	break;
