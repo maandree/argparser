@@ -198,6 +198,7 @@ extern args_Option args_new_argumentless(int standard, int count, ...)
   if (standard < 0)
     standard += rc.alternatives_count;
   rc.standard = *(rc.alternatives + standard);
+  return rc;
 }
 
 /**
@@ -223,6 +224,7 @@ extern args_Option args_new_argumented(char* argument, int standard, int count, 
   if (standard < 0)
     standard += rc.alternatives_count;
   rc.standard = *(rc.alternatives + standard);
+  return rc;
 }
 
 /**
@@ -248,6 +250,7 @@ extern args_Option args_new_variadic(char* argument, int standard, int count, ..
   if (standard < 0)
     standard += rc.alternatives_count;
   rc.standard = *(rc.alternatives + standard);
+  return rc;
 }
 
 
@@ -609,7 +612,7 @@ extern void args_add_option(args_Option option, char* help)
   
   {
     long i = 0, n = option.alternatives_count;
-    for (i; i < n; i++)
+    for (; i < n; i++)
       args_optmap_put(*(option.alternatives + i), args_options_count);
     args_opts_put(option.standard, null);
     args_opts_put_count(option.standard, 0);
@@ -1308,7 +1311,7 @@ extern long args_parse(int argc, char** argv)
     {
       long more = args_unrecognised_count - 5;
       char* option_s = more == 1 ? "option" : "options";
-      fprintf(args_out, "%s: warning: %i more unrecognised %s\n", args_program, more, option_s);
+      fprintf(args_out, "%s: warning: %li more unrecognised %s\n", args_program, more, option_s);
     }
   
   return rc;
