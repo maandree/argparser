@@ -127,18 +127,20 @@ function args_dispose
 
 # Gets the name of the parent process
 # 
-# @param   $1:int  The number of parents to walk, 0 for self, and 1 for direct parent
-# @return  :str    The name of the parent process, empty if not found
-# @exit            0 of success, 1 if not found
+# @param   $1:int   The number of parents to walk, 0 for self, and 1 for direct parent
+# @param   $2:bool  Whether to get all arguments
+# @return  :str     The name of the parent process, empty if not found
+# @exit             0 of success, 1 if not found
 function args_parent_name
 {
-    local pid=$$ lvl=$1 found=0 line arg
+    local pid=$$ lvl=$1 found=0 all=$2 line rc
     if [ "${lvl}" = "" ]; then
 	lvl=1
     fi
-    while (( $lvl > 0 )) && [ $found = 0 ]; do
+    while (( $lvl > 0 )); do
+	found=0
 	while read line; do
-	    if [ "${line:5}" = "PPid:" ]; then
+	    if [ "${line::5}" = "PPid:" ]; then
 		line="${line:5}"
 		line="${line/$(echo -e \\t)/}"
 		pid="${line/ /}"
@@ -146,16 +148,19 @@ function args_parent_name
 		found=1
 		break
 	    fi
-	done < "/proc/${pid}/cmdline"
+	done < "/proc/${pid}/status"
+	if [ $found = 0 ]; then
+	    return 1
+	fi
     done
-    if [ $found = 0 ]; then
-	return 1
-    fi
     if [ -e "/proc/${pid}/cmdline" ]; then
-	for arg in "$(cat /proc/${pid}/cmdline | sed -e 's/\x00/\n/g')" ; do
-	    echo "$arg"
-	    return 0
-	done
+	rc="$(cat /proc/${pid}/cmdline | sed -e 's/\x00/\n/g')"
+	if [ "$all" = 1 ]; then
+	    echo "$rc"
+	else
+	    head -n 1 <<<"$rc"
+	fi
+	return 0
     fi
     return 1
 }
@@ -165,7 +170,7 @@ function args_parent_name
 function args_support_alternatives
 {
     local alt
-    for alt in "$(ls "${args_optmap}")"; do
+    ls "${args_optmap}" | while read alt; do
 	if [ ! -e "${args_opts}/${alt}" ]; then
 	    ln -s "${args_opts}/$(head -n 1 < "${args_optmap}/${alt}")" "${args_opts}/${alt}"
 	fi
@@ -334,7 +339,7 @@ function args_add_variadic
 function args_help
 {
     local dash first last maxfirstlen=0 i=0 n help start count lines=() lens=()
-    local empty="        " line l col index=0 colour
+    local empty="        " line l col index=0 colour _colour
     
     dash="—"
     if [ ${args_linuxvt} = 1 ]; then
@@ -343,7 +348,7 @@ function args_help
     echo -en "\e[01m" >> "${args_out}"
     echo -n "${args_program}" >> "${args_out}"
     echo -en "\e[21m" >> "${args_out}"
-    echo "${dash} ${args_description}" >> "${args_out}"
+    echo " ${dash} ${args_description}" >> "${args_out}"
     
     echo >> "${args_out}"
     if [ ! "${args_longdescription}" = "" ]; then
@@ -407,10 +412,10 @@ function args_help
 	l=$(( ${#first} + ${#last} + 6 ))
 	if [ $type = ${args_ARGUMENTED} ]; then
 	    line+="$(echo -en " \e[04m")${arg}$(echo -en "\e[24m")"
-	    l=$(( $l + 1 ))
+	    l=$(( $l + ${#arg} + 1 ))
 	elif [ $type = ${args_VARIADIC} ]; then
 	    line+="$(echo -en " [\e[04m")${arg}$(echo -en "\e[24m...]")"
-	    l=$(( $l + 6 ))
+	    l=$(( $l + ${#arg} + 6 ))
 	fi
 	lines+=( "$line" )
 	lens+=( $l )
@@ -436,9 +441,9 @@ function args_help
 	fi
 	first=1
 	colour=$(( 36 - 2 * ($index & 1) ))
-	colour="$(sed -e "s:/ARGPARSER_COLOUR/:\x1b[${colour};01m:g" <<< "${lines[$index]}")"
-	echo -n "${colour}${empty:${lens[$index]}}" >> "${args_out}"
-	while read line; do
+	_colour="$(sed -e "s:/ARGPARSER_COLOUR/:\x1b[${colour};01m:g" <<< "${lines[$index]}")"
+	echo -n "${_colour}${empty:${lens[$index]}}" >> "${args_out}"
+	echo -e "${help}" | while read line; do
 	    if [ $first = 1 ]; then
 		first=0
 		echo -n "${line}" >> "${args_out}"
@@ -448,7 +453,7 @@ function args_help
 		echo -n "${line}" >> "${args_out}"
 		echo -e "\e[00m" >> "${args_out}"
 	    fi
-	done <<< "${help}"
+	done
 	(( index++ ))
     done
     
@@ -503,7 +508,7 @@ function args_parse
 			    optqueue+=( "${arg}" )
 			    argqueue+=( "" )
 			    nulqueue+=( 1 )
-			elif []; then
+			elif [ ! "${arg/=/}" = "${arg}" ]; then
 			    _arg="${arg%%=*}"
 			    type="$(tail -n 1 < "${args_optmap}/${_arg}")"
 			    if (( $type >= ${args_ARGUMENTED} )); then
@@ -544,7 +549,7 @@ function args_parse
 				argqueue+=( "" )
 				nulqueue+=( 1 )
 			    elif [ $type = ${args_ARGUMENTED} ]; then
-				if [ ${#arg} == $i ]; then
+				if [ ${#arg} = $i ]; then
 				    (( get++ ))
 				else
 				    argqueue+=( "${arg:i}" )
@@ -552,7 +557,7 @@ function args_parse
 				fi
 				break
 			    else
-				if [ ${#arg} == $i ]; then
+				if [ ${#arg} = $i ]; then
 				    argqueue+=( "" )
 				    nulqueue+=( 1 )
 				else
@@ -575,7 +580,7 @@ function args_parse
 		args_files+=( "$arg" )
 	    fi
 	done
-	set "${queue[@]}"
+	set "${queue[@]}" > /dev/null
 	queue=()
     done
     
@@ -585,7 +590,7 @@ function args_parse
 	opt="${optqueue[$i]}"
 	arg=""
 	(( ${#argqueue[@]} > $i )) && [ ${nulqueue[$i]} = 1 ]
-	argnull=$?
+	argnull=$(( 1 - $? ))
 	if [ $argnull = 0 ]; then
 	    arg="${argqueue[$i]}"
 	fi
@@ -593,8 +598,8 @@ function args_parse
 	opt="$(head -n 1 < "${args_optmap}/${opt}")"
 	if [ ! -e "${args_opts}/${opt}" ]; then
 	    mkdir -p "${args_opts}/${opt}"
-	    echo -n "${args_opts}/${opt}/data"
-	    echo -n "${args_opts}/${opt}/null"
+	    echo -n > "${args_opts}/${opt}/data"
+	    echo -n > "${args_opts}/${opt}/null"
 	fi
 	if (( ${#argqueue[@]} >= $i )); then
 	    echo "$arg" >> "${args_opts}/${opt}/data"
@@ -603,7 +608,7 @@ function args_parse
     done
     
     i=0
-    n=$(( ${#arg_options[@]} / 6 ))
+    n=$(( ${#args_options[@]} / 6 ))
     while (( $i < $n )); do
 	type=${args_options[(( $i * 6 + 0 ))]}
 	 std=${args_options[(( $i * 6 + 5 ))]}
@@ -624,7 +629,7 @@ function args_parse
     
     args_message="${args_files[*]}"
     args_has_message="${#args_files[@]}"
-    if [[ ! $args_has_message = 0 ]]; then
+    if [ ! $args_has_message = 0 ]; then
 	args_has_message=1
     fi
     

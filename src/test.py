@@ -68,7 +68,7 @@ elif parser.unrecognisedCount == 0 and len(parser.arguments) > 0 and len(parser.
 else:
     print('Number of unrecognised options: %i' % parser.unrecognisedCount)
     print('Entered message: ' + str(parser.message))
-    print('Enterd files:')
+    print('Entered files:')
     for file in parser.files:
         print('\t' + file)
 
