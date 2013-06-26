@@ -860,7 +860,7 @@ public class ArgParser
 	    {	line += " [\033[04m" + opt.argument + "\033[24m...]";
 		l += opt.argument.length() + 6;
 	    }
-	    else if (opt.getClass() Argumented.class)
+	    else if (opt.getClass() == Argumented.class)
 	    {	line += " \033[04m" + opt.argument + "\033[24m";
 		l += opt.argument.length() + 1;
 	    }
