@@ -493,7 +493,7 @@ function args_parse
 	    elif [ "$arg" = "--" ]; then
 		dashed=1
 	    elif (( ${#arg} > 1 )) && [ "${_arg::1}" = "-" ]; then
-		if (( ${#arg} > 2 )) && [ "${_arg::1}" = "${_arg:1:1}" ]; then
+		if (( ${#arg} > 2 )) && [ "${arg::1}" = "${arg:1:1}" ]; then
 		    if [ ! $dontget = 0 ]; then
 			(( dontget-- ))
 		    elif [ ! -e "${args_optmap}/${arg}" ]; then
