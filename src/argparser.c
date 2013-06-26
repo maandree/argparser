@@ -192,22 +192,32 @@ extern void args_dispose()
 /**
  * Creates, but does not add, a option that takes no arguments
  * 
- * @param   standard  The index of the standard alternative name
- * @param   count...  The alterntive names
- * @return            The created option
+ * @param   standard         The index of the standard alternative name
+ * @param   alternatives...  The alterntive names, end with `null`
+ * @return                   The created option
  */
-extern args_Option args_new_argumentless(int standard, int count, ...)
+extern args_Option args_new_argumentless(int standard, char* alternatives, ...)
 {
+  long count = 1;
   args_Option rc;
-  va_list args;
+  va_list args, cp;
   long i;
+  
+  va_copy(cp, args); /* va_copy(dest, src) */
+  va_start(cp, alternatives);
+  while (va_arg(args, char*) != null)
+    count++;
+  va_end(cp);
+  
   rc.type = ARGUMENTLESS;
   rc.help = null;
   rc.argument = "NOTHING";
   rc.alternatives_count = count;
+  
   rc.alternatives = (char**)malloc(count * sizeof(char*));
-  va_start(args, count);
-  for (i = 0; i < count; i++)
+  va_start(args, alternatives);
+  *(rc.alternatives) = alternatives;
+  for (i = 1; i < count; i++)
     *(rc.alternatives + i) = va_arg(args, char*);
   va_end(args);
   if (standard < 0)
@@ -219,23 +229,35 @@ extern args_Option args_new_argumentless(int standard, int count, ...)
 /**
  * Creates, but does not add, a option that takes one argument per use
  * 
- * @param   argument  The new of the argument
- * @param   standard  The index of the standard alternative name
- * @param   count...  The alterntive names
- * @return            The created option
+ * @param   argument         The new of the argument
+ * @param   standard         The index of the standard alternative name
+ * @param   alternatives...  The alterntive names, end with `null`
+ * @return                   The created option
  */
-extern args_Option args_new_argumented(char* argument, int standard, int count, ...)
+extern args_Option args_new_argumented(char* argument, int standard, char* alternatives, ...)
 {
+  long count = 1;
   args_Option rc;
-  va_list args;
+  va_list args, cp;
   long i;
+  
+  va_copy(cp, args); /* va_copy(dest, src) */
+  va_start(cp, alternatives);
+  while (va_arg(args, char*) != null)
+    count++;
+  va_end(cp);
+  
   rc.type = ARGUMENTED;
   rc.help = null;
   rc.argument = argument == null ? "ARG" : argument;
   rc.alternatives_count = count;
+  
   rc.alternatives = (char**)malloc(count * sizeof(char*));
-  for (i = 0; i < count; i++)
+  va_start(args, alternatives);
+  *(rc.alternatives) = alternatives;
+  for (i = 1; i < count; i++)
     *(rc.alternatives + i) = va_arg(args, char*);
+  va_end(args);
   if (standard < 0)
     standard += rc.alternatives_count;
   rc.standard = *(rc.alternatives + standard);
@@ -245,23 +267,35 @@ extern args_Option args_new_argumented(char* argument, int standard, int count, 
 /**
  * Creates, but does not add, a option that takes all following arguments
  * 
- * @param   argument  The new of the argument
- * @param   standard  The index of the standard alternative name
- * @param   count...  The alterntive names
- * @return            The created option
+ * @param   argument         The new of the argument
+ * @param   standard         The index of the standard alternative name
+ * @param   alternatives...  The alterntive names, end with `null`
+ * @return                   The created option
  */
-extern args_Option args_new_variadic(char* argument, int standard, int count, ...)
+extern args_Option args_new_variadic(char* argument, int standard, char* alternatives, ...)
 {
+  long count = 1;
   args_Option rc;
-  va_list args;
+  va_list args, cp;
   long i;
+  
+  va_copy(cp, args); /* va_copy(dest, src) */
+  va_start(cp, alternatives);
+  while (va_arg(args, char*) != null)
+    count++;
+  va_end(cp);
+  
   rc.type = VARIADIC;
   rc.help = null;
   rc.argument = argument == null ? "ARG" : argument;
   rc.alternatives_count = count;
+  
   rc.alternatives = (char**)malloc(count * sizeof(char*));
-  for (i = 0; i < count; i++)
+  va_start(args, alternatives);
+  *(rc.alternatives) = alternatives;
+  for (i = 1; i < count; i++)
     *(rc.alternatives + i) = va_arg(args, char*);
+  va_end(args);
   if (standard < 0)
     standard += rc.alternatives_count;
   rc.standard = *(rc.alternatives + standard);

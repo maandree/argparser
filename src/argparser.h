@@ -181,31 +181,31 @@ extern void args_dispose();
 /**
  * Creates, but does not add, a option that takes no arguments
  * 
- * @param   standard  The index of the standard alternative name
- * @param   count...  The alterntive names
- * @return            The created option
+ * @param   standard         The index of the standard alternative name
+ * @param   alternatives...  The alterntive names, end with `null`
+ * @return                   The created option
  */
-extern args_Option args_new_argumentless(int standard, int count, ...);
+extern args_Option args_new_argumentless(int standard, char* alternatives, ...);
 
 /**
  * Creates, but does not add, a option that takes one argument per use
  * 
- * @param   argument  The new of the argument
- * @param   standard  The index of the standard alternative name
- * @param   count...  The alterntive names
- * @return            The created option
+ * @param   argument         The new of the argument
+ * @param   standard         The index of the standard alternative name
+ * @param   alternatives...  The alterntive names, end with `null`
+ * @return                   The created option
  */
-extern args_Option args_new_argumented(char* argument, int standard, int count, ...);
+extern args_Option args_new_argumented(char* argument, int standard, char* alternatives, ...);
 
 /**
  * Creates, but does not add, a option that takes all following arguments
  * 
- * @param   argument  The new of the argument
- * @param   standard  The index of the standard alternative name
- * @param   count...  The alterntive names
- * @return            The created option
+ * @param   argument         The new of the argument
+ * @param   standard         The index of the standard alternative name
+ * @param   alternatives...  The alterntive names, end with `null`
+ * @return                   The created option
  */
-extern args_Option args_new_variadic(char* argument, int standard, int count, ...);
+extern args_Option args_new_variadic(char* argument, int standard, char* alternatives, ...);
 
 
 /**
