@@ -955,10 +955,10 @@ extern void args_help()
 	if (args_options_get_help(i) == null)
 	  continue;
 	l = 0;
-	arg = *(args_options_get_argument(i));
+	arg = args_options_get_argument(i);
 	first = *(args_options_get_alternatives(i));
 	last = *(args_options_get_alternatives(i) + args_options_get_alternatives_count(i) - 1);
-	type = *(args_options_get_type(i));
+	type = args_options_get_type(i);
 	if (first == last)
 	  first = empty;
 	else
@@ -1015,7 +1015,7 @@ extern void args_help()
   free(empty);
   
   {
-    long col = 0, i = 0, index = 0
+    long col = 0, i = 0, index = 0;
     for (; i < count; i++)
       if (col < *(lens + i))
 	col = *(lens + i);
@@ -1062,10 +1062,10 @@ extern void args_help()
 	  if (first)
 	    {
 	      first = false;
-	      fprintf(args_out, "%s\033[00m\n", *(jump + j));
+	      fprintf(args_out, "%s\033[00m\n", *(jumps + j));
 	    }
 	  else
-	    fprintf(args_out, "%s\033[%sm%s\033[00m\n", empty, colour, *(jump + j));
+	    fprintf(args_out, "%s\033[%sm%s\033[00m\n", empty, colour, *(jumps + j));
 	free(buf);
 	free(jumps);
       }
@@ -1348,8 +1348,8 @@ static void _sort(char** list, long count, char** temp)
     {
       long i = 0, a = count >> 1;
       long j = a, b = count - a;
-      sort(list + 0, a, temp + 0);
-      sort(list + a, b, temp + a);
+      _sort(list + 0, a, temp + 0);
+      _sort(list + a, b, temp + a);
       b += a;
       while ((i < a) && (j < b))
 	{
