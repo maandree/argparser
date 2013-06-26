@@ -1,4 +1,4 @@
-C_OPTIMISE = -O0
+C_OPTIMISE = -O6
 JAVA_OPTIMISE = -O
 
 all:

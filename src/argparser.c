@@ -181,7 +181,7 @@ extern void args_dispose()
   if (args_opts.keys != null)
     {
       void** freethis = map_free(&args_opts);
-      long i;
+      long i = 0;
       while (*(freethis + i))
 	free(*(freethis + i++));
       free(freethis);
