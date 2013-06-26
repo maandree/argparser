@@ -96,7 +96,7 @@ function args_option
 	fi
     elif [ "$1" = null ]; then
 	rc="$(head -n $(( $3 + 1 )) < "${dir}/null" | tail -n 1)"
-	return (( 1 - $rc ))
+	return $(( 1 - $rc ))
     elif [ "$1" = get ]; then
 	shift 2
 	if [ $# = 0 ]; then
