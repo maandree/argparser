@@ -1503,7 +1503,7 @@ static void _map_free(void** level, long has_value)
     if ((value = *(level + 16)))
       {
 	if (args_map_values_ptr == args_map_values_size)
-	  args_map_values = (void**)realloc(args_map_values_size <<= 1, sizeof(void*));
+	  args_map_values = (void**)realloc(args_map_values, (args_map_values_size <<= 1) * sizeof(void*));
 	*(args_map_values + args_map_values_ptr++) = value;
       }
   free(level);
@@ -1526,7 +1526,7 @@ static void** map_free(args_Map* map)
   args_map_values = (void**)malloc(64 * sizeof(void*));
   _map_free(map->data, true);
   if (args_map_values_ptr == args_map_values_size)
-    args_map_values = (void**)realloc(args_map_values_size + 1, sizeof(void*));
+    args_map_values = (void**)realloc(args_map_values, (args_map_values_size + 1) * sizeof(void*));
   *(args_map_values + args_map_values_ptr) = null;
   return args_map_values;
 }
