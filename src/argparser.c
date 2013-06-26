@@ -540,7 +540,7 @@ extern long args_get_optmap_count()
  */
 extern void args_optmap_put(char* name, long index)
 {
-  return map_put(&args_optmap, name, (void*)(index + 1));
+  map_put(&args_optmap, name, (void*)(index + 1));
 }
 
 /**
@@ -781,8 +781,8 @@ extern long args_test_allowed(char** allowed, long allowed_count)
       if ((allowed == a) || (cmp(*opts, *allowed) < 0))
 	if (args_opts_used(*opts))
 	  {
-	    fprintf(args_out, "%s: option used out of context: %s", args_program, *opts);
 	    char* std = args_optmap_get_standard(*opts);
+	    fprintf(args_out, "%s: option used out of context: %s", args_program, *opts);
 	    if (cmp(std, *opts) != 0)
 	      fprintf(args_out, "(%s)", std);
 	    fprintf(args_out, "\n");
