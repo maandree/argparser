@@ -428,6 +428,7 @@ function args_help
 	fi
     done
     col=$(( $col + 8 - (($col - 4) & 7) ))
+    empty="${empty}        "
     while (( ${#empty} < $col )); do
 	empty="${empty}${empty}"
     done
