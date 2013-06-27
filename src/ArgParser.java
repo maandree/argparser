@@ -194,7 +194,7 @@ public class ArgParser
     /**
      * Option class
      */
-    public class Option
+    public static class Option
     {
 	/**
 	 * Constructor
@@ -237,7 +237,7 @@ public class ArgParser
     /**
      * Option takes no arguments
      */
-    public class Argumentless extends Option
+    public static class Argumentless extends Option
     {
 	/**
 	 * Constructor
@@ -273,7 +273,7 @@ public class ArgParser
     /**
      * Option takes one argument per instance
      */
-    public class Argumented extends Option
+    public static class Argumented extends Option
     {
 	/**
 	 * Constructor
@@ -344,7 +344,7 @@ public class ArgParser
     /**
      * Option consumes all following arguments
      */
-    public class Variadic extends Argumented
+    public static class Variadic extends Argumented
     {
 	/**
 	 * Constructor
