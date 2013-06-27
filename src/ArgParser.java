@@ -469,10 +469,13 @@ public class ArgParser
 		    InputStream is = null;
 		    try
 		    {   is = new FileInputStream(new File("/proc/" + pid + "/status"));
-			byte[] data = new byte[is.available()];
-			int off = 0;
-			while (off != data.length)
-			    off += is.read(data, off, data.length - off);
+			byte[] data = new byte[1 << 12];
+			int off = 0, read = 1;
+			while (read > 0)
+			{   if (off == data.length)
+				System.arraycopy(data, 0, data = new byte[data.length << 1], 0, off);
+			    off += read = is.read(data, off, data.length - off);
+			}
 			String[] lines = (new String(data, "UTF-8")).split("\n");
 			for (String line : lines)
 			{    if (line.startsWith("PPid:"))
@@ -496,11 +499,14 @@ public class ArgParser
 	    InputStream is = null;
 	    try
 	    {   is = new FileInputStream(new File("/proc/" + pid + "/cmdline"));
-		byte[] data = new byte[is.available()];
-		int off = 0;
-		while (off != data.length)
-		    off += is.read(data, off, data.length - off);
-		String[] cmdline = new String(data, 0, off - 1, "UTF-8").split("\0");
+		byte[] data = new byte[128];
+		int off = 0, read = 1;
+		while (read > 0)
+		{   if (off == data.length)
+			System.arraycopy(data, 0, data = new byte[data.length << 1], 0, off);
+		    off += read = is.read(data, off, data.length - off);
+		}
+		String[] cmdline = new String(data, 0, off, "UTF-8").split("\0");
 		if (hasInterpretor == false)
 		{   String rc = cmdline[0];
 		    return rc.length() == 0 ? null : rc;
