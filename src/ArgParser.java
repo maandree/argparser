@@ -1042,14 +1042,16 @@ public class ArgParser
 		    break;
 	    }	}
 	
-	final StringBuilder sb = new StringBuilder();
-	for (final String file : this.files)
-	{   sb.append(' ');
-	    sb.append(file);
+	if (this.files.size() > 0)
+	{   final StringBuilder sb = new StringBuilder();
+	    for (final String file : this.files)
+	    {   sb.append(' ');
+		sb.append(file);
+	    }
+	    this.message = sb.toString();
+	    if (this.message.length() > 0)
+		this.message = this.message.substring(1);
 	}
-	this.message = sb.toString();
-	if (this.message.length() > 0)
-	    this.message = this.message.substring(1);
 	
 	if (this.unrecognisedCount > 5)
 	{   int more = this.unrecognisedCount - 5;
