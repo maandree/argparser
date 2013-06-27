@@ -50,7 +50,33 @@ public class Test
 	parser.parse(args);
 	parser.supportAlternatives();
 	
-	parser.help();
+	if (parser.opts.get("-?") != null)
+	    parser.help();
+	else if ((parser.unrecognisedCount + parser.files.size() == 0) && (parser.arguments.length > 0))
+	{
+	    if (parser.opts.get("--hello") != null)
+	    {   for (int i = 0, n = parser.opts.get("--hello").length; i < n; i++)
+		    System.out.println("Hello World");
+	    }
+	    if (parser.opts.get("-l") != null)
+	    {   for (String line : parser.opts.get("--line"))
+		    System.out.println(line);
+	    }
+	    if (parser.opts.get("--lines") != null)
+	    {   for (String line : parser.opts.get("--l"))
+		    System.out.println(line);
+	    }
+	    if (parser.opts.get("++hidden") != null)
+	    {   System.out.println("Congratulations, you have found the secret option!");
+	    }
+	}
+	else
+	{   System.out.println("Number of unrecognised options: " + parser.unrecognisedCount);
+	    System.out.println("Entered message: " + parser.message);
+	    System.out.println("Entered files:");
+	    for (String file : parser.files)
+		System.out.println("\t" + file);
+	}
     }
     
 }
