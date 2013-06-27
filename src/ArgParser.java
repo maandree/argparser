@@ -836,7 +836,7 @@ public class ArgParser
 		if (maxfirstlen < opt.alternatives[0].length())
 		    maxfirstlen = opt.alternatives[0].length();
 	}
-	empty += "        ";
+	String empty = "        ";
 	while (empty.length() < maxfirstlen)
 	    empty += empty;
 	empty = empty.substring(0, maxfirstlen);
@@ -875,8 +875,7 @@ public class ArgParser
 	col += 8 - ((col - 4) & 7);
 	int index = 0;
 	
-	if (maxfirstlen == 0)
-	    empty = "        ";
+	empty += "        ";
 	while (empty.length() < col)
 	    empty += empty;
 	empty = empty.substring(0, col);
