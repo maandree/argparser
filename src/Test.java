@@ -40,6 +40,13 @@ public class Test
 					 "You should have received a copy of the GNU General Public License\n" +
 					 "along with this library.  If not, see <http://www.gnu.org/licenses/>.", null, true);
 	
+	parser.add(new ArgParser.Argumentless(0, "-h", "-?", "--help"), "Prints this help message\n(and exits)");
+	parser.add(new ArgParser.Argumentless(0, "--hello"), "Prints the text: hello world");
+	parser.add(new ArgParser.Argumentless(0, "++hidden"));
+	
+	parser.add(new ArgParser.Argumented("LINE", 0, "-l", "--line"), "Prints the choosen line");
+	parser.add(new ArgParser.Variadic("LINE", 0, "--l", "--lines"), "Prints the choosen lines");
+	
 	parser.parse(args);
 	parser.supportAlternatives();
 	
