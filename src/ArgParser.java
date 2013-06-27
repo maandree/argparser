@@ -1039,7 +1039,9 @@ public class ArgParser
 	{   sb.append(' ');
 	    sb.append(file);
 	}
-	this.message = sb.toString().substring(1);
+	this.message = sb.toString();
+	if (this.message.length() > 0)
+	    this.message = this.message.substring(1);
 	
 	if (this.unrecognisedCount > 5)
 	{   int more = this.unrecognisedCount - 5;
