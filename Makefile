@@ -8,3 +8,5 @@ all:
 	javac $(JAVA_OPTIMISE) -cp src -s src -d bin src/Test.java
 	cd bin ; jar cf ArgParser.jar ArgParser*.class
 
+clean:
+	-rm -r -- bin
