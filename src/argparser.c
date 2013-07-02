@@ -205,7 +205,7 @@ args_Option args_new_argumentless(int standard, char* alternatives, ...)
   
   va_copy(cp, args); /* va_copy(dest, src) */
   va_start(cp, alternatives);
-  while (va_arg(args, char*) != null)
+  while (va_arg(cp, char*) != null)
     count++;
   va_end(cp);
   
@@ -243,7 +243,7 @@ args_Option args_new_argumented(char* argument, int standard, char* alternatives
   
   va_copy(cp, args); /* va_copy(dest, src) */
   va_start(cp, alternatives);
-  while (va_arg(args, char*) != null)
+  while (va_arg(cp, char*) != null)
     count++;
   va_end(cp);
   
@@ -281,7 +281,7 @@ args_Option args_new_variadic(char* argument, int standard, char* alternatives, 
   
   va_copy(cp, args); /* va_copy(dest, src) */
   va_start(cp, alternatives);
-  while (va_arg(args, char*) != null)
+  while (va_arg(cp, char*) != null)
     count++;
   va_end(cp);
   
@@ -693,6 +693,7 @@ char* args_parent_name(long levels)
   data = (char*)malloc(2048 * sizeof(char));
   while (lvl > 0)
     {
+      long found = false;
       i = 0;
       for (j = 0; *("/proc/" + j);  j++)  *(buf + i++) = *("/proc/" + j);
       for (j = 0; *(pid + j);       j++)  *(buf + i++) = *(pid + j);
@@ -726,15 +727,19 @@ char* args_parent_name(long levels)
 			      *(pid + i) = *(buf + off + i);
 			    *(pid + j) = 0;
 			    lvl--;
+			    found = true;
 			    break;
 			  }
 	      j = 0;
 	    }
-	  if (j < 35)
-	    *(buf + j) = c;
+	  else if (j < 35)
+	    *(buf + j++) = c;
 	}
-      free(data);
-      return null;
+      if (found == false)
+	{
+	  free(data);
+	  return null;
+	}
     }
   free(data);
   i = 0;
