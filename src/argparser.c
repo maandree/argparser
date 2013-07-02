@@ -112,7 +112,7 @@ static long args_map_values_size;
  * @param  program          The name of the program, `null` for automatic
  * @param  usestderr        Whether to use stderr instead of stdout
  */
-extern void args_init(char* description, char* usage, char* longdescription, char* program, long usestderr)
+void args_init(char* description, char* usage, char* longdescription, char* program, long usestderr)
 {
   char* term = getenv("TERM");
   args_linuxvt = 0;
@@ -151,7 +151,7 @@ extern void args_init(char* description, char* usage, char* longdescription, cha
 /**
  * Disposes of all resources, run this when you are done
  */
-extern void args_dispose()
+void args_dispose()
 {
   if (args_files != null)
     free(args_files);
@@ -196,7 +196,7 @@ extern void args_dispose()
  * @param   alternatives...  The alterntive names, end with `null`
  * @return                   The created option
  */
-extern args_Option args_new_argumentless(int standard, char* alternatives, ...)
+args_Option args_new_argumentless(int standard, char* alternatives, ...)
 {
   long count = 1;
   args_Option rc;
@@ -234,7 +234,7 @@ extern args_Option args_new_argumentless(int standard, char* alternatives, ...)
  * @param   alternatives...  The alterntive names, end with `null`
  * @return                   The created option
  */
-extern args_Option args_new_argumented(char* argument, int standard, char* alternatives, ...)
+args_Option args_new_argumented(char* argument, int standard, char* alternatives, ...)
 {
   long count = 1;
   args_Option rc;
@@ -272,7 +272,7 @@ extern args_Option args_new_argumented(char* argument, int standard, char* alter
  * @param   alternatives...  The alterntive names, end with `null`
  * @return                   The created option
  */
-extern args_Option args_new_variadic(char* argument, int standard, char* alternatives, ...)
+args_Option args_new_variadic(char* argument, int standard, char* alternatives, ...)
 {
   long count = 1;
   args_Option rc;
@@ -308,7 +308,7 @@ extern args_Option args_new_variadic(char* argument, int standard, char* alterna
  * 
  * @return  All options
  */
-extern args_Option* args_get_options()
+args_Option* args_get_options()
 {
   return args_options;
 }
@@ -318,7 +318,7 @@ extern args_Option* args_get_options()
  * 
  * @return  The number of elements in the array returned by `args_get_options`
  */
-extern long args_get_options_count()
+long args_get_options_count()
 {
   return args_options_count;
 }
@@ -329,7 +329,7 @@ extern long args_get_options_count()
  * @param   index  The option's index
  * @return         The option
  */
-extern args_Option args_options_get(long index)
+args_Option args_options_get(long index)
 {
   return *(args_options + index);
 }
@@ -340,7 +340,7 @@ extern args_Option args_options_get(long index)
  * @param   index  The option's index
  * @return         The option's type
  */
-extern long args_options_get_type(long index)
+long args_options_get_type(long index)
 {
   return (*(args_options + index)).type;
 }
@@ -351,7 +351,7 @@ extern long args_options_get_type(long index)
  * @param   index  The option's index
  * @return         The option's number of alternative option names
  */
-extern long args_options_get_alternatives_count(long index)
+long args_options_get_alternatives_count(long index)
 {
   return (*(args_options + index)).alternatives_count;
 }
@@ -362,7 +362,7 @@ extern long args_options_get_alternatives_count(long index)
  * @param   index  The option's index
  * @return         The option's alternative option names
  */
-extern char** args_options_get_alternatives(long index)
+char** args_options_get_alternatives(long index)
 {
   return (*(args_options + index)).alternatives;
 }
@@ -373,7 +373,7 @@ extern char** args_options_get_alternatives(long index)
  * @param   index  The option's index
  * @return         The option's argument name
  */
-extern char* args_options_get_argument(long index)
+char* args_options_get_argument(long index)
 {
   return (*(args_options + index)).argument;
 }
@@ -384,7 +384,7 @@ extern char* args_options_get_argument(long index)
  * @param   index  The option's index
  * @return         The option's standard option name
  */
-extern char* args_options_get_standard(long index)
+char* args_options_get_standard(long index)
 {
   return (*(args_options + index)).standard;
 }
@@ -395,7 +395,7 @@ extern char* args_options_get_standard(long index)
  * @param   index  The option's index
  * @return         The option's help text
  */
-extern char* args_options_get_help(long index)
+char* args_options_get_help(long index)
 {
   return (*(args_options + index)).help;
 }
@@ -406,7 +406,7 @@ extern char* args_options_get_help(long index)
  * 
  * @return  The available options
  */
-extern char** args_get_opts()
+char** args_get_opts()
 {
   return args_opts.keys;
 }
@@ -416,7 +416,7 @@ extern char** args_get_opts()
  * 
  * @return  The number of available options
  */
-extern long args_get_opts_count()
+long args_get_opts_count()
 {
   return args_opts.key_count;
 }
@@ -427,7 +427,7 @@ extern long args_get_opts_count()
  * @param   name  The option
  * @return        Whether an option is available
  */
-extern long args_opts_contains(char* name)
+long args_opts_contains(char* name)
 {
   return map_get(&args_opts, name) != null;
 }
@@ -437,7 +437,7 @@ extern long args_opts_contains(char* name)
  * 
  * @param  name  The option
  */
-extern void args_opts_new(char* name)
+void args_opts_new(char* name)
 {
   args_opts_put(name, null);
   args_opts_put_count(name, 0);
@@ -449,7 +449,7 @@ extern void args_opts_new(char* name)
  * @param  name   The option
  * @param  value  The new value
  */
-extern void args_opts_append(char* name, char* value)
+void args_opts_append(char* name, char* value)
 {
   long size = args_opts_get_count(name) + 1;
   char** values = args_opts_get(name);
@@ -475,7 +475,7 @@ extern void args_opts_append(char* name, char* value)
  * 
  * @param  name  The option
  */
-extern void args_opts_clear(char* name)
+void args_opts_clear(char* name)
 {
   char** value = args_opts_get(name);
   if (value != null)
@@ -489,7 +489,7 @@ extern void args_opts_clear(char* name)
  * @param   name  The option
  * @return        The values
  */
-extern char** args_opts_get(char* name)
+char** args_opts_get(char* name)
 {
   args_Array* value = (args_Array*)map_get(&args_opts, name);
   if (value == null)
@@ -503,7 +503,7 @@ extern char** args_opts_get(char* name)
  * @param   name  The option
  * @return        The number of values
  */
-extern long args_opts_get_count(char* name)
+long args_opts_get_count(char* name)
 {
   args_Array* value = (args_Array*)map_get(&args_opts, name);
   if (value == null)
@@ -517,7 +517,7 @@ extern long args_opts_get_count(char* name)
  * @param  name   The option
  * @param  count  The values
  */
-extern void args_opts_put(char* name, char** values)
+void args_opts_put(char* name, char** values)
 {
   args_Array* value = (args_Array*)map_get(&args_opts, name);
   if (value == null)
@@ -536,7 +536,7 @@ extern void args_opts_put(char* name, char** values)
  * @param  name   The option
  * @param  count  The number of values
  */
-extern void args_opts_put_count(char* name, long count)
+void args_opts_put_count(char* name, long count)
 {
   args_Array* value = (args_Array*)map_get(&args_opts, name);
   if (value == null)
@@ -555,7 +555,7 @@ extern void args_opts_put_count(char* name, long count)
  * @param   name  The option
  * @return        Whether the option is used
  */
-extern long args_opts_used(char* name)
+long args_opts_used(char* name)
 {
   return args_opts_get_count(name) > 0;
 }
@@ -566,7 +566,7 @@ extern long args_opts_used(char* name)
  * 
  * @return  All alternativ names that exists for all options
  */
-extern char** args_get_optmap()
+char** args_get_optmap()
 {
   return args_optmap.keys;
 }
@@ -576,7 +576,7 @@ extern char** args_get_optmap()
  * 
  * @return  The number of elements returned by `args_get_optmap`
  */
-extern long args_get_optmap_count()
+long args_get_optmap_count()
 {
   return args_optmap.key_count;
 }
@@ -587,7 +587,7 @@ extern long args_get_optmap_count()
  * @param  name   The option's alternative name
  * @param  index  The option's index
  */
-extern void args_optmap_put(char* name, long index)
+void args_optmap_put(char* name, long index)
 {
   map_put(&args_optmap, name, (void*)(index + 1));
 }
@@ -598,7 +598,7 @@ extern void args_optmap_put(char* name, long index)
  * @param   name  The option's alternative name
  * @return        The option
  */
-extern args_Option args_optmap_get(char* name)
+args_Option args_optmap_get(char* name)
 {
   return *(args_options + args_optmap_get_index(name));
 }
@@ -609,7 +609,7 @@ extern args_Option args_optmap_get(char* name)
  * @param   name  The option's alternative name
  * @return        The option's index, negative if not found
  */
-extern long args_optmap_get_index(char* name)
+long args_optmap_get_index(char* name)
 {
   return (long)(map_get(&args_optmap, name)) - 1;
 }
@@ -620,7 +620,7 @@ extern long args_optmap_get_index(char* name)
  * @param   name  One of the names of the option
  * @return        Whether the option exists
  */
-extern long args_optmap_contains(char* name)
+long args_optmap_contains(char* name)
 {
   return args_optmap_get_index(name) >= 0;
 }
@@ -631,7 +631,7 @@ extern long args_optmap_contains(char* name)
  * @param   name  The option's alternative name
  * @return        The option's type
  */
-extern long args_optmap_get_type(char* name)
+long args_optmap_get_type(char* name)
 {
   return (*(args_options + args_optmap_get_index(name))).type;
 }
@@ -642,7 +642,7 @@ extern long args_optmap_get_type(char* name)
  * @param   name  The option's alternative name
  * @return        The option's standard option name
  */
-extern char* args_optmap_get_standard(char* name)
+char* args_optmap_get_standard(char* name)
 {
   return (*(args_options + args_optmap_get_index(name))).standard;
 }
@@ -654,7 +654,7 @@ extern char* args_optmap_get_standard(char* name)
  * @param  option  The option
  * @param  help    Help text, multi-line, `null` if hidden
  */
-extern void args_add_option(args_Option option, char* help)
+void args_add_option(args_Option option, char* help)
 {
   if (args_options_count == args_options_size)
     args_options = (args_Option*)realloc(args_options, (args_options_size <<= 1) * sizeof(args_Option));
@@ -677,7 +677,7 @@ extern void args_add_option(args_Option option, char* help)
  * @param   levels  The number of parents to walk, 0 for self, and 1 for direct parent
  * @return          The name of the parent process, `null` if not found
  */
-extern char* args_parent_name(long levels)
+char* args_parent_name(long levels)
 {
   char pid[22]; /* 6 should be enough, but we want to be future proof */
   ssize_t pid_n = readlink("/proc/self", pid, 21);
@@ -773,7 +773,7 @@ extern char* args_parent_name(long levels)
  * @param   min  The minimum number of files
  * @return       Whether the usage was correct
  */
-extern long args_test_files_min(long min)
+long args_test_files_min(long min)
 {
   return min <= args_files_count;
 }
@@ -785,7 +785,7 @@ extern long args_test_files_min(long min)
  * @param   max  The maximum number of files
  * @return       Whether the usage was correct
  */
-extern long args_test_files_max(long max)
+long args_test_files_max(long max)
 {
   return args_files_count <= max;
 }
@@ -798,7 +798,7 @@ extern long args_test_files_max(long max)
  * @param   max  The maximum number of files
  * @return       Whether the usage was correct
  */
-extern long args_test_files(long min, long max)
+long args_test_files(long min, long max)
 {
   return (min <= args_files_count) && (args_files_count <= max);
 }
@@ -811,7 +811,7 @@ extern long args_test_files(long min, long max)
  * @param   allowed_count  The number of elements in `allowed`
  * @return                 Whether only allowed options was used
  */
-extern long args_test_allowed(char** allowed, long allowed_count)
+long args_test_allowed(char** allowed, long allowed_count)
 {
   char** opts;
   char** a;
@@ -853,7 +853,7 @@ extern long args_test_allowed(char** allowed, long allowed_count)
  * @param   exclusives_count  The number of elements in `exclusives`
  * @return                    Whether at most one exclusive option was used
  */
-extern long args_test_exclusiveness(char** exclusives, long exclusives_count)
+long args_test_exclusiveness(char** exclusives, long exclusives_count)
 {
   long used_ptr = 0, i = 0;
   char** used = (char**)malloc(args_get_opts_count() * sizeof(char*));
@@ -905,7 +905,7 @@ extern long args_test_exclusiveness(char** exclusives, long exclusives_count)
 /**
  * Maps up options that are alternatives to the first alternative for each option
  */
-extern void args_support_alternatives()
+void args_support_alternatives()
 {
   char** opts = args_get_optmap();
   long n = args_get_optmap_count();
@@ -923,7 +923,7 @@ extern void args_support_alternatives()
 /**
  * Prints a colourful help message
  */
-extern void args_help()
+void args_help()
 {
   long maxfirstlen = 0, count = 0, copts = args_get_options_count();
   char* dash = args_linuxvt ? "-" : "—";
@@ -1137,7 +1137,7 @@ extern void args_help()
  * @param   argv  The command line arguments, it should include the execute file at index 0
  * @return        Whether no unrecognised option is used
  */
-extern long args_parse(int argc, char** argv)
+long args_parse(int argc, char** argv)
 {
   char** argend = argv + argc;
   long dashed = false, tmpdashed = false, get = 0, dontget = 0, rc = true;
