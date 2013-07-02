@@ -1480,6 +1480,7 @@ static void* map_get(args_Map* map, char* key)
 	at = (void**)*(at + b);
       else
 	return null;
+      key++;
     }
   return *(at + 16);
 }
@@ -1518,6 +1519,7 @@ static void map_put(args_Map* map, char* key, void* value)
 	    *(at + i) = null;
 	  new = true;
 	}
+      key++;
     }
   *(at + 16) = value;
   if (new)
