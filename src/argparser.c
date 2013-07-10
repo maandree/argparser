@@ -160,7 +160,12 @@ void args_dispose()
   if (args_program_dispose)
     free(args_program);
   if (args_options != null)
-    free(args_options);
+    {
+      long i;
+      for (i = 0; i < args_options_count; i++)
+	free((*(args_options + i)).alternatives);
+      free(args_options);
+    }
   
   args_files = null;
   args_message = null;
@@ -1523,7 +1528,7 @@ static void map_put(args_Map* map, char* key, void* value)
     }
   *(at + 16) = value;
   if (new)
-    map->keys = realloc(map->keys, (map->key_count + 1) * sizeof(char**));
+    map->keys = (char**)realloc(map->keys, (map->key_count + 1) * sizeof(char*));
 }
 
 /**
@@ -1534,12 +1539,12 @@ static void map_put(args_Map* map, char* key, void* value)
  */
 static void _map_free(void** level, long has_value)
 {
-  long i;
+  long next_has_value = has_value ^ true, i;
   void* value;
   if (level == null)
     return;
   for (i = 0; i < 16; i++)
-    free(*(level + i));
+    _map_free(*(level + i), next_has_value);
   if (has_value)
     if ((value = *(level + 16)))
       {
