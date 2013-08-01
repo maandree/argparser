@@ -17,6 +17,7 @@ PY3VERSION = 3.3
 LIBPY3 = $(PREFIX)$(LIB)/python$(PY3VERSION)
 LIBBASH = $(PREFIX)$(LIB)
 LIBJAVA = $(PREFIX)$(LIB)
+LIBC = $(PREFIX)$(LIB)
 VERSION = 1.0
 
 
@@ -58,18 +59,18 @@ bin/argparser.so: src/argparser.c src/argparser.h
 install: install-python install-bash install-java install-c install-license
 
 install-python: bin/argparser.py
-	install -Dm644 bin/argparser.py "$(DESTDIR)$(PREFIX)$(LIBPY3)/argparser.py"
+	install -Dm644 bin/argparser.py "$(DESTDIR)$(LIBPY3)/argparser.py"
 
 install-bash: bin/argparser.bash
-	install -Dm644 bin/argparser.bash "$(DESTDIR)$(PREFIX)$(LIBBASH)/argparser.bash"
+	install -Dm644 bin/argparser.bash "$(DESTDIR)$(LIBBASH)/argparser.bash"
 
 install-java: bin/ArgParser.jar
-	install -Dm644 bin/ArgParser.jar "$(DESTDIR)$(PREFIX)$(LIBJAVA)/ArgParser.jar"
+	install -Dm644 bin/ArgParser.jar "$(DESTDIR)$(LIBJAVA)/ArgParser.jar"
 
 install-c: bin/argparser.so src/argparser.h
-	install -Dm644 bin/argparser.so "$(DESTDIR)$(LIB)/arggarser.so.$(VERSION)"
-	ln -s "argparser.so.$(VERSION)" "$(DESTDIR)$(LIB)/argparser.so"
-	install -Dm644 src/argparser.h "$(DESTDIR)$(INCLUDE)/argparser.h"
+	install -Dm644 bin/argparser.so "$(DESTDIR)$(LIBC)/arggarser.so.$(VERSION)"
+	ln -s "argparser.so.$(VERSION)" "$(DESTDIR)$(LIBC)/argparser.so"
+	install -Dm644 src/argparser.h "$(DESTDIR)$(PREFIX)$(INCLUDE)/argparser.h"
 
 install-license:
 	install -d "$(DESTDIR)$(LICENSES)/$(PKGNAME)"
@@ -80,17 +81,17 @@ install-license:
 uninstall: uninstall-python uninstall-bash uninstall-java uninstall-c uninstall-license
 
 uninstall-python:
-	rm -- "$(DESTDIR)$(PREFIX)$(LIBPY3)/argparser.py"
+	rm -- "$(DESTDIR)$(LIBPY3)/argparser.py"
 
 uninstall-bash:
-	rm -- "$(DESTDIR)$(PREFIX)$(LIBBASH)/argparser.bash"
+	rm -- "$(DESTDIR)$(LIBBASH)/argparser.bash"
 
 uninstall-java:
-	rm -- "$(DESTDIR)$(PREFIX)$(LIBJAVA)/ArgParser.jar"
+	rm -- "$(DESTDIR)$(LIBJAVA)/ArgParser.jar"
 
 uninstall-c:
-	rm -- "$(DESTDIR)$(PREFIX)$(LIB)/argparser.so"
-	rm -- "$(DESTDIR)$(PREFIX)$(LIB)/argparser.so.1.0"
+	rm -- "$(DESTDIR)$(LIBC)/argparser.so"
+	rm -- "$(DESTDIR)$(LIBC)/argparser.so.1.0"
 	rm -- "$(DESTDIR)$(PREFIX)$(INCLUDE)/argparser.h"
 
 uninstall-license:
