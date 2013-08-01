@@ -168,6 +168,25 @@ options invoke the nulladic method @code{help}.
 The JAR for ArgParser, @file{ArgParser.jar}, is located in @file{/usr/lib}.
 When using it you need to import @code{argparser.ArgParser}.
 
+@code{ArgParser} has six constructors, conforming to:
+@code{description, usage, [longDescription, [program]], [useStderr]}.
+These correspond to those in the Python version.
+
+@code{ArgParser.parent_name} from the Python version is named
+@code{ArgParser.parentName} in the Java version and is identical
+except it parses Java invocation rather then Python invocation.
+Further @code{support_alternatives}, @code{test_exclusiveness},
+@code{test_allowed}, @code{test_files} and @code{help} are named
+@code{supportAlternatives}, @code{testExclusiveness}, @code{testAllowed},
+@code{testFiles} and @code{help} respectively and @code{testFiles}
+without @var{min} is named @code{testFilesMax} and @code{testFiles}
+without @var{max} is named @code{testFilesMin}.
+
+@var{message} is a @code{String}, @var{files} is a @code{ArrayList<String>},
+@var{unrecognisedCount} is a @code{int}, @var{arguments} is a @code{String[]},
+and @var{opts} is a @code{HashMap<String, String[]>}.
+@var{argcount} does not exist.
+
 
 
 @c@node Bash version
