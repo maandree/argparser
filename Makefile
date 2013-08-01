@@ -28,7 +28,16 @@ JAVAC = javac
 
 
 
-all: python bash java c
+all: python bash java c doc
+
+doc: info
+
+info: argparser.info.gz
+
+%.info.gz: info/%.texinfo
+	makeinfo "$<"
+	gzip -9 -f "$*.info"
+
 
 python: bin/argparser.py
 bin/argparser.py: src/argparser.py
@@ -56,7 +65,7 @@ bin/argparser.so: src/argparser.c src/argparser.h
 
 
 
-install: install-python install-bash install-java install-c install-license
+install: install-python install-bash install-java install-c install-license install-doc
 
 install-python: bin/argparser.py
 	install -Dm644 bin/argparser.py "$(DESTDIR)$(LIBPY3)/argparser.py"
@@ -76,9 +85,14 @@ install-license:
 	install -d "$(DESTDIR)$(LICENSES)/$(PKGNAME)"
 	install -m644 COPYING LICENSE "$(DESTDIR)$(LICENSES)/$(PKGNAME)"
 
+install-doc: install-info
+
+install-info: argparser.info.gz
+	install -Dm644 argparser.info.gz "$(DESTDIR)$(PREFIX)$(SHARE)/info/$(PKGNAME).info.gz"
 
 
-uninstall: uninstall-python uninstall-bash uninstall-java uninstall-c uninstall-license
+
+uninstall: uninstall-python uninstall-bash uninstall-java uninstall-c uninstall-license uninstall-doc
 
 uninstall-python:
 	rm -- "$(DESTDIR)$(LIBPY3)/argparser.py"
@@ -98,6 +112,11 @@ uninstall-license:
 	rm -- "$(DESTDIR)$(LICENSES)/$(PKGNAME)/LICENSE"
 	rm -- "$(DESTDIR)$(LICENSES)/$(PKGNAME)/COPYING"
 	-rmdir -- "$(DESTDIR)$(LICENSES)/$(PKGNAME)"
+
+uninstall-doc: uninstall-info
+
+uninstall-info:
+	rm -- "$(DESTDIR)$(PREFIX)$(SHARE)/info/$(PKGNAME).info.gz"
 
 
 
