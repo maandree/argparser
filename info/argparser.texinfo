@@ -54,7 +54,7 @@ Texts. A copy of the license is included in the section entitled
 * Python version::                  Using the Python version.
 * Java version::                    Using the Java version.
 * C version::                       Using the C version.
-@c* Bash version::                    Using the Bash version.
+* Bash version::                    Using the Bash version.
 * GNU Free Documentation License::  Copying and sharing this manual.
 @end menu
 
