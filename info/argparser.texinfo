@@ -51,6 +51,7 @@ Texts. A copy of the license is included in the section entitled
 
 @menu
 * Overview::                        Brief overview of @command{argparser}.
+* Python verison::                  Using the python version.
 * GNU Free Documentation License::  Copying and sharing this manual.
 @end menu
 
@@ -60,9 +61,102 @@ Texts. A copy of the license is included in the section entitled
 @chapter Overview
 
 Command line argument parser library for multiple languages with the
-capability of both @code{-} and @code{+} short arguments and both
-@code{--} and @code{++} long arguments. It supports variadic arguments,
+capability of both @code{-} and @code{+} short options and both
+@code{--} and @code{++} long options. It supports variadic options,
 colours and @code{--} and temporary @code{--} using @code{++}.
+
+A variadic option is a option that takes all arguments placed after
+it as an argument associated with it, rather than just the directly
+following argument as an argumented option does.
+
+
+
+@node Python verison
+@chapter Python verison
+
+To use argparser you need to import @code{ArgParser} from @code{argparser}
+using the instruction @code{from argparser import *}.
+
+The class @code{ArgParser} is used for parsing argument and requires an
+instance. @code{ArgParser}'s constructor takes two manditory arguments
+and three optional arguments. The first argument, @var{description}, is
+a short, single-line, description of the program. The second argument,
+@var{usage}, is multi-line usage text that is recommended to contain ANSI
+colour escape sequences (for portability ESC 39m, ESC 49m and colours
+beyond the lower 8 are not not recommended to be used); @code{None} can
+be used if you do not have a usage descriptor.
+@code{ArgParser}'s constructors there optional arguments are:
+@var{longdescription}, @var{program} and @var{usestderr}.
+@var{longdescription} is a long, multi-line, description of the program;
+@code{None} can be used if you do not have a long description.
+@var{program} is the program part of the executed command, but if you
+rather, you can provide an exact name. You can also use the static function
+@code{ArgParser.parent_name} to get the program part of the executed command
+of a parent proces, it takes two optional arguments: @var{levels}, the
+number of parent levels, by default 1; and @var{hasinterpretor}, whether
+to get the name from an invocation of Python, by default false.
+@var{usestderr} is by default @code{False} which means that printing is
+done to stdout, otherwise, printing is done to stderr.
+
+Before parsing arguments you need to populate the @code{ArgParser}
+instance with valid options. There are three methods for this,
+@code{add_argumentless}, @code{add_argumented} and @code{add_variadic},
+that adds argumentless options, argumented options and variadic options
+respectively. With the exception that @code{add_argumentless} does not
+have the parameter @var{arg}, these three arguments has one manditory
+argument, @var{alternatives}, and three optional arguments: @var{default},
+@var{arg}, @var{help}. @var{default}'s deault value is zero, and either
+the primary alternative or its index in @var{alternatives}.
+@var{alternatives} is a list of alternatives, for example, a help option
+could have @code{['-h', '--help']}. @var{arg} is a descriptive short name
+of a argument associated with the option, and @var{help} is description
+of the option and may span multiple lines but should only do so if the
+lines below the first is just extra details.
+
+When you have populated your @code{ArgParser} with options, it is time
+to parse arguments, it is done with the method @code{parses} that optional
+takes and list of arguments. If you choose to use a list of arguments
+rather than letting @code{ArgParser} use arguments used to start the
+program, the first ement will not be parsed as it is assumed to be the
+executable.
+
+If you now want to use any option alternative rather than just the
+primary (using just the primary is good to keep your code consistent)
+invoke the nulladic method @code{support_alternatives}.
+
+Before using your options you should so some checks that the combination
+of options and arguments are valid. There are some methods provided to do
+this. @code{test_exclusiveness} checks that no confliction options are
+used, as the first argument, a set of options provided from which at most
+one may be used; as a optional second argument, a return code can be provided
+if you want the program to exit if there are option conflicts.
+@code{test_allowed} checks that only allowed options are used, as the first
+argument, a set of options provided in which all used arguments must exist;
+as a optional second argument, a return code can be provided if you want the
+program to exit if there are out of context option.
+@code{test_files} checks that the number of arguments not associated with
+an option is within an acccepted range, it takes three option arguments,
+@var{min}, @var{max} and @var{exit_value}. @var{min} is the minimum count,
+@var{max} is the maximum count, @code{None} if unlimited, and @var{exit_value}
+is a return code can be provided if you want the program to exit if there
+are out of context option. Remember that you should also check that the
+number of times an option is used is acceptable.
+
+After running @code{parses}, your @code{ArgParser} has five attributes:
+@var{unrecognisedCount}, the number of unrecognised options; and
+@var{message}, the join of @var{files} which is all arguments not
+associated with an option, @var{arguments} the parsed arguments, and
+@var{argcount}, the number of arguments in @var{arguments}.
+
+All valid options are stored in your @code{ArgParser}'s @var{opts},
+it is a dictionary from the option to either @code{None} if the option
+has not been used, or a list of all used values, in order. A variadic
+option without any argumnt will have a empty list and a argumentless
+option will have list filled with @code{None}.
+
+To print a help page based on the constructor arguments and populated
+options invoke the nulladic method @code{help}.
+
 
 
 @node GNU Free Documentation License
