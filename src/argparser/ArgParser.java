@@ -302,11 +302,23 @@ public class ArgParser
 	/**
 	 * Constructor
 	 * 
+	 * @param  argument      Argument name
+	 * @param  alternatives  Alterative option names
+	 * @param  standard      Standard option index
+	 */
+	public Argumented(final String argument, final String[] alternatives, final int standard)
+	{   super(alternatives, standard, argument);
+	}
+	
+	/**
+	 * Constructor
+	 * 
+	 * @param  standard      Standard option index
 	 * @param  alternatives  Alterative option names
 	 * @param  argument      Argument name
 	 */
-	public Argumented(final String[] alternatives, final String argument)
-	{   super(alternatives, 0, argument);
+	public Argumented(final int standard, final String[] alternatives, final String argument)
+	{   super(alternatives, standard, argument);
 	}
 	
 	/**
@@ -329,6 +341,16 @@ public class ArgParser
 	 */
 	public Argumented(final String argument, final int standard, final String... alternatives)
 	{   super(alternatives, standard, argument);
+	}
+	
+	/**
+	 * Constructor
+	 * 
+	 * @param  alternatives  Alterative option names
+	 * @param  argument      Argument name
+	 */
+	public Argumented(final String[] alternatives, final String argument)
+	{   super(alternatives, 0, argument);
 	}
 	
 	/**
@@ -373,11 +395,23 @@ public class ArgParser
 	/**
 	 * Constructor
 	 * 
+	 * @param  argument      Argument name
+	 * @param  alternatives  Alterative option names
+	 * @param  standard      Standard option index
+	 */
+	public Variadic(final String argument, final String[] alternatives, final int standard)
+	{   super(alternatives, argument, standard);
+	}
+	
+	/**
+	 * Constructor
+	 * 
+	 * @param  standard      Standard option index
 	 * @param  alternatives  Alterative option names
 	 * @param  argument      Argument name
 	 */
-	public Variadic(final String[] alternatives, final String argument)
-	{   super(alternatives, argument);
+	public Variadic(final int standard, final String[] alternatives, final String argument)
+	{   super(standard, argument, alternatives);
 	}
 	
 	/**
@@ -400,6 +434,16 @@ public class ArgParser
 	 */
 	public Variadic(final String argument, final int standard, final String... alternatives)
 	{   super(argument, standard, alternatives);
+	}
+	
+	/**
+	 * Constructor
+	 * 
+	 * @param  alternatives  Alterative option names
+	 * @param  argument      Argument name
+	 */
+	public Variadic(final String[] alternatives, final String argument)
+	{   super(alternatives, argument);
 	}
 	
 	/**
