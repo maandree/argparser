@@ -52,7 +52,7 @@ Texts. A copy of the license is included in the section entitled
 @menu
 * Overview::                        Brief overview of @command{argparser}.
 * Python version::                  Using the Python version.
-@c* Java version::                    Using the Java version.
+* Java version::                    Using the Java version.
 @c* Bash version::                    Using the Bash version.
 @c* C version::                       Using the C version.
 * GNU Free Documentation License::  Copying and sharing this manual.
@@ -162,8 +162,11 @@ options invoke the nulladic method @code{help}.
 
 
 
-@c@node Java version
-@c@chapter Java version
+@node Java version
+@chapter Java version
+
+The JAR for ArgParser, @file{ArgParser.jar}, is located in @file{/usr/lib}.
+When using it you need to import @code{argparser.ArgParser}.
 
 
 
