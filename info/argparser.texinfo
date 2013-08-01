@@ -187,6 +187,18 @@ without @var{max} is named @code{testFilesMin}.
 and @var{opts} is a @code{HashMap<String, String[]>}.
 @var{argcount} does not exist.
 
+To populate the @code{ArgParser} with valid options, use the method
+@code{add} with the option and optional, before or after, the description.
+An option is created using a constructor for either @code{Argumentless},
+@code{Argumented} or @code{Variadic}.
+@code{Argumentless}'s constructor takes an @code{String[]} of alternatives
+and optional, before or after, the index of the primary alternative. If
+the index is not after the alternative array, the alternatives parameter
+is variadic and each alternative can be an argument.
+@code{Argumentless}'s constructor and @code{Variadic}'s constructor also
+takes a descriptive short name of a argument associated with the option
+optioned anywhere, and the alterantive array is variadic if places last.
+
 
 
 @c@node Bash version
