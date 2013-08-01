@@ -68,7 +68,7 @@ install-java: bin/ArgParser.jar
 	install -Dm644 bin/ArgParser.jar "$(DESTDIR)$(LIBJAVA)/ArgParser.jar"
 
 install-c: bin/argparser.so src/argparser.h
-	install -Dm644 bin/argparser.so "$(DESTDIR)$(LIBC)/arggarser.so.$(VERSION)"
+	install -Dm644 bin/argparser.so "$(DESTDIR)$(LIBC)/argparser.so.$(VERSION)"
 	ln -s "argparser.so.$(VERSION)" "$(DESTDIR)$(LIBC)/argparser.so"
 	install -Dm644 src/argparser.h "$(DESTDIR)$(PREFIX)$(INCLUDE)/argparser.h"
 
