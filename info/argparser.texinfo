@@ -72,6 +72,9 @@ A variadic option is a option that takes all arguments placed after
 it as an argument associated with it, rather than just the directly
 following argument as an argumented option does.
 
+Options that are missing descriptions are not printed by the help
+functions.
+
 
 
 @node Python version
@@ -214,10 +217,10 @@ free its resources using function @code{args_dispose}.
 @code{args_init} corresponds the the @code{ArgParser} constructor in
 the Python version, but all parameters are manditory.
 
-@code{args_arguments}, @code{args_arguments_count},
-@code{args_unrecognised_count}, @code{args_message} and @code{args_files}
-works as their Python version counterparts, and @code{args_files_count}
-tells how many elements there are in @code{args_files}.
+@var{args_arguments}, @var{args_arguments_count},
+@var{args_unrecognised_count}, @var{args_message} and @var{args_files}
+works as their Python version counterparts, and @var{args_files_count}
+tells how many elements there are in @var{args_files}.
 
 @code{args_parent_name} takes the number of levels as a manditory
 parameters, and no other parameter. @code{args_help} and
@@ -259,9 +262,50 @@ only the option as parameter.
 
 
 
-@c@node Bash version
-@c@chapter Bash version
+@node Bash version
+@chapter Bash version
 
+The Bash version is written to be supported for older versions of Bash,
+and is used by @code{source}:ing @file{/usr/lib/argparser.bash}. It works
+similarly to the C version and @code{args_dispose} should be invoked when
+done, optionally with the ID of the process that allocated the resouces.
+
+Rather than a boolean, @code{args_init} takes a file descriptor as the
+fifth argument, @code{1} for stdout (default) and @code{2} for stderr.
+
+@code{args_parent_name} takes a boolean as a second parameter that tells
+whether to return all arguments, on one line each, and defaults to false.
+Booleans are true if and only if the value is @code{1}.
+
+@code{args_test_exclusiveness} and @code{args_test_allowed} are variadic
+and does not have a parameter for the number of options.
+
+@code{args_test_files_min} and @code{args_test_files_max} does not exist,
+but @code{args_test_files} takes the minimum count and optionally the
+maxmimum count.
+
+To add valid options use the methods @code{args_add_argumentless},
+@code{args_add_argumented} and @code{args_add_variadic}. With the
+except that @code{args_add_argumentless} does not take a name of
+the argument, these methods takes the index of the primary alternative,
+a one word name of the argument, a description (empty for none), and
+then one argument per alternative.
+
+@var{args_argcount} is the number of elements in @var{args_arguments}
+and @var{args_files} does not have any such counterpart.
+@var{args_has_message} is @code{1} if there is a message, that is,
+if the length of @var{args_files} is not zero, and otherwise @code{0}.
+
+To read the parsed arguments, the method @code{args_option} is used.
+Its exit value is @code{0} if successful or if the return is true,
+@code{1} if the return is false, and @code{2} on failure.
+@code{args_option has} with a option name is used to check if a option
+is used. @code{args_option count} with a option name echos the number
+of values associated with the option. @code{args_option null} with a
+option name and value index checks whether the value with that index
+is null. @code{args_option get} with a option name echos all values,
+one line each, but if any number of indices are also used only those
+values are echoed.
 
 
 
