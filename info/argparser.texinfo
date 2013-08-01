@@ -85,23 +85,23 @@ using the instruction @code{from argparser import *}.
 
 The class @code{ArgParser} is used for parsing argument and requires an
 instance. @code{ArgParser}'s constructor takes two manditory arguments
-and three optional arguments. The first argument, @var{description}, is
+and three optional arguments. The first argument, @code{description}, is
 a short, single-line, description of the program. The second argument,
-@var{usage}, is multi-line usage text that is recommended to contain ANSI
+@code{usage}, is multi-line usage text that is recommended to contain ANSI
 colour escape sequences (for portability ESC 39m, ESC 49m and colours
 beyond the lower 8 are not not recommended to be used); @code{None} can
 be used if you do not have a usage descriptor.
 @code{ArgParser}'s constructors there optional arguments are:
-@var{longdescription}, @var{program} and @var{usestderr}.
-@var{longdescription} is a long, multi-line, description of the program;
+@code{longdescription}, @code{program} and @code{usestderr}.
+@code{longdescription} is a long, multi-line, description of the program;
 @code{None} can be used if you do not have a long description.
-@var{program} is the program part of the executed command, but if you
+@code{program} is the program part of the executed command, but if you
 rather, you can provide an exact name. You can also use the static function
 @code{ArgParser.parent_name} to get the program part of the executed command
-of a parent proces, it takes two optional arguments: @var{levels}, the
-number of parent levels, by default 1; and @var{hasinterpretor}, whether
+of a parent proces, it takes two optional arguments: @code{levels}, the
+number of parent levels, by default 1; and @code{hasinterpretor}, whether
 to get the name from an invocation of Python, by default false.
-@var{usestderr} is by default @code{False} which means that printing is
+@code{usestderr} is by default @code{False} which means that printing is
 done to stdout, otherwise, printing is done to stderr.
 
 Before parsing arguments you need to populate the @code{ArgParser}
@@ -109,13 +109,13 @@ instance with valid options. There are three methods for this,
 @code{add_argumentless}, @code{add_argumented} and @code{add_variadic},
 that adds argumentless options, argumented options and variadic options
 respectively. With the exception that @code{add_argumentless} does not
-have the parameter @var{arg}, these three arguments has one manditory
-argument, @var{alternatives}, and three optional arguments: @var{default},
-@var{arg}, @var{help}. @var{default}'s deault value is zero, and either
-the primary alternative or its index in @var{alternatives}.
-@var{alternatives} is a list of alternatives, for example, a help option
-could have @code{['-h', '--help']}. @var{arg} is a descriptive short name
-of a argument associated with the option, and @var{help} is description
+have the parameter @code{arg}, these three arguments has one manditory
+argument, @code{alternatives}, and three optional arguments: @code{default},
+@code{arg}, @code{help}. @code{default}'s deault value is zero, and either
+the primary alternative or its index in @code{alternatives}.
+@code{alternatives} is a list of alternatives, for example, a help option
+could have @code{['-h', '--help']}. @code{arg} is a descriptive short name
+of a argument associated with the option, and @code{help} is description
 of the option and may span multiple lines but should only do so if the
 lines below the first is just extra details.
 
@@ -142,19 +142,19 @@ as a optional second argument, a return code can be provided if you want the
 program to exit if there are out of context option.
 @code{test_files} checks that the number of arguments not associated with
 an option is within an acccepted range, it takes three option arguments,
-@var{min}, @var{max} and @var{exit_value}. @var{min} is the minimum count,
-@var{max} is the maximum count, @code{None} if unlimited, and @var{exit_value}
+@code{min}, @code{max} and @code{exit_value}. @code{min} is the minimum count,
+@code{max} is the maximum count, @code{None} if unlimited, and @code{exit_value}
 is a return code can be provided if you want the program to exit if there
 are out of context option. Remember that you should also check that the
 number of times an option is used is acceptable.
 
 After running @code{parses}, your @code{ArgParser} has five attributes:
-@var{unrecognisedCount}, the number of unrecognised options; and
-@var{message}, the join of @var{files} which is all arguments not
-associated with an option, @var{arguments} the parsed arguments, and
-@var{argcount}, the number of arguments in @var{arguments}.
+@code{unrecognisedCount}, the number of unrecognised options; and
+@code{message}, the join of @code{files} which is all arguments not
+associated with an option, @code{arguments} the parsed arguments, and
+@code{argcount}, the number of arguments in @code{arguments}.
 
-All valid options are stored in your @code{ArgParser}'s @var{opts},
+All valid options are stored in your @code{ArgParser}'s @code{opts},
 it is a dictionary from the option to either @code{None} if the option
 has not been used, or a list of all used values, in order. A variadic
 option without any argumnt will have a empty list and a argumentless
@@ -182,15 +182,15 @@ Further @code{support_alternatives}, @code{test_exclusiveness},
 @code{test_allowed}, @code{test_files} and @code{help} are named
 @code{supportAlternatives}, @code{testExclusiveness}, @code{testAllowed},
 @code{testFiles} and @code{help} respectively and @code{testFiles}
-without @var{min} is named @code{testFilesMax} and @code{testFiles}
-without @var{max} is named @code{testFilesMin}.
+without @code{min} is named @code{testFilesMax} and @code{testFiles}
+without @code{max} is named @code{testFilesMin}.
 
 @code{parse} takes an array of arguments, which excludes the executable.
 
-@var{message} is a @code{String}, @var{files} is a @code{ArrayList<String>},
-@var{unrecognisedCount} is a @code{int}, @var{arguments} is a @code{String[]},
-and @var{opts} is a @code{HashMap<String, String[]>}.
-@var{argcount} does not exist.
+@code{message} is a @code{String}, @code{files} is a @code{ArrayList<String>},
+@code{unrecognisedCount} is a @code{int}, @code{arguments} is a @code{String[]},
+and @code{opts} is a @code{HashMap<String, String[]>}.
+@code{argcount} does not exist.
 
 To populate the @code{ArgParser} with valid options, use the method
 @code{add} with the option and optional, before or after, the description.
@@ -217,15 +217,15 @@ free its resources using function @code{args_dispose}.
 @code{args_init} corresponds the the @code{ArgParser} constructor in
 the Python version, but all parameters are manditory.
 
-@var{args_arguments}, @var{args_arguments_count},
-@var{args_unrecognised_count}, @var{args_message} and @var{args_files}
-works as their Python version counterparts, and @var{args_files_count}
-tells how many elements there are in @var{args_files}.
+@code{args_arguments}, @code{args_arguments_count},
+@code{args_unrecognised_count}, @code{args_message} and @code{args_files}
+works as their Python version counterparts, and @code{args_files_count}
+tells how many elements there are in @code{args_files}.
 
 @code{args_parent_name} takes the number of levels as a manditory
 parameters, and no other parameter. @code{args_help} and
 @code{args_support_alternatives} takes no parameters, and @code{args_parse}
-takes @var{argc} and @var{argv}, the arguments in your main method.
+takes @code{argc} and @code{argv}, the arguments in your main method.
 
 @code{args_test_files_min}, @code{args_test_files_max} and
 @code{args_test_files} works are their Java version counterparts, except
@@ -291,10 +291,10 @@ the argument, these methods takes the index of the primary alternative,
 a one word name of the argument, a description (empty for none), and
 then one argument per alternative.
 
-@var{args_argcount} is the number of elements in @var{args_arguments}
-and @var{args_files} does not have any such counterpart.
-@var{args_has_message} is @code{1} if there is a message, that is,
-if the length of @var{args_files} is not zero, and otherwise @code{0}.
+@code{args_argcount} is the number of elements in @code{args_arguments}
+and @code{args_files} does not have any such counterpart.
+@code{args_has_message} is @code{1} if there is a message, that is,
+if the length of @code{args_files} is not zero, and otherwise @code{0}.
 
 To read the parsed arguments, the method @code{args_option} is used.
 Its exit value is @code{0} if successful or if the return is true,
