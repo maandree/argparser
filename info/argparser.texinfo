@@ -242,6 +242,21 @@ associated with the option, the index of the primary alternative, and
 finally a variadic parameter with the alternatives, meaning that each
 alternative is an argument.
 
+To list all valid options, use the method @code{args_get_opts} which returns
+a string array of all options, and @code{args_get_opts_count} which returns
+the number of strings in the array returned by @code{args_get_opts}.
+@code{args_opts_contains} with a option checks whether the option is available,
+while @code{args_opts_used} checks whether it is used. @code{args_opts_new}
+adds option and @code{args_opts_clear} removes all values stored for a
+option. @code{args_opts_append} which takes a option and a value as
+parameters store a value for a option and @code{args_opts_put} sets all
+value for an option, it works the same way, except a string array of values
+is used rather than just a string with a value, @code{args_opts_put_count}
+stores the number of values. The get a number of values for a option, which
+include @code{NULL} for argumentless occurrences, use @code{args_opts_get_count},
+and to retrieve the array of values, use @code{args_opts_get}. Both takes
+only the option as parameter.
+
 
 
 @c@node Bash version
