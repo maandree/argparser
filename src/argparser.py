@@ -51,11 +51,11 @@ class ArgParser():
         Constructor.
         The short description is printed on same line as the program name
         
-        @param  description:str      Short, single-line, description of the program
-        @param  usage:str?           Formated, multi-line, usage text, may be `None`
-        @param  longdescription:str  Long, multi-line, description of the program, may be `None`
-        @param  program:str?         The name of the program, `None` for automatic
-        @param  usestderr:bool       Whether to use stderr instead of stdout
+        @param  description:str       Short, single-line, description of the program
+        @param  usage:str?            Formated, multi-line, usage text, may be `None`
+        @param  longdescription:str?  Long, multi-line, description of the program, may be `None`
+        @param  program:str?          The name of the program, `None` for automatic
+        @param  usestderr:bool        Whether to use stderr instead of stdout
         '''
         self.linuxvt = ('TERM' in os.environ) and (os.environ['TERM'] == 'linux')
         self.program = sys.argv[0] if program is None else program
