@@ -45,12 +45,14 @@ info: argparser.info.gz
 .PHONY: python
 python: bin/argparser.py
 bin/argparser.py: src/argparser.py
+	@mkdir -p bin
 	cp "$<" "$@"
 	sed -i 's:^#!/usr/bin/env python3$$:#!$(PY3SHEBANG)":' "$@"
 
 .PHONY: bash
 bash: bin/argparser.bash
 bin/argparser.bash: src/argparser.bash
+	@mkdir -p bin
 	cp "$<" "$@"
 	sed -i 's:^#!/bin/bash$$:#!$(BASHSHEBANG)":' "$@"
 
