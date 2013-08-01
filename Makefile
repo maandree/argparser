@@ -68,8 +68,8 @@ install-java: bin/ArgParser.jar
 	install -Dm644 bin/ArgParser.jar "$(DESTDIR)$(LIBJAVA)/ArgParser.jar"
 
 install-c: bin/argparser.so src/argparser.h
-	install -Dm644 bin/argparser.so "$(DESTDIR)$(LIBC)/argparser.so.$(VERSION)"
-	ln -s "argparser.so.$(VERSION)" "$(DESTDIR)$(LIBC)/argparser.so"
+	install -Dm644 bin/argparser.so "$(DESTDIR)$(LIBC)/libargparser.so.$(VERSION)"
+	ln -s "libargparser.so.$(VERSION)" "$(DESTDIR)$(LIBC)/libargparser.so"
 	install -Dm644 src/argparser.h "$(DESTDIR)$(PREFIX)$(INCLUDE)/argparser.h"
 
 install-license:
@@ -90,8 +90,8 @@ uninstall-java:
 	rm -- "$(DESTDIR)$(LIBJAVA)/ArgParser.jar"
 
 uninstall-c:
-	rm -- "$(DESTDIR)$(LIBC)/argparser.so"
-	rm -- "$(DESTDIR)$(LIBC)/argparser.so.1.0"
+	rm -- "$(DESTDIR)$(LIBC)/libargparser.so"
+	rm -- "$(DESTDIR)$(LIBC)/libargparser.so.1.0"
 	rm -- "$(DESTDIR)$(PREFIX)$(INCLUDE)/argparser.h"
 
 uninstall-license:
