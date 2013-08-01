@@ -1,4 +1,4 @@
-Command line argument parser library for multiple languages
-with the capability of both - and + short arguments and
-both -- and ++ long arguments. It supports variadic arguments,
+Command line option parser library for multiple languages
+with the capability of both - and + short options and
+both -- and ++ long options. It supports variadic options,
 colours and -- and temporary -- using ++.
