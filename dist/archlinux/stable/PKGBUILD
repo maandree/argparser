@@ -1,6 +1,6 @@
 # Maintainer: Mattias Andrée <`base64 -d`(bWFhbmRyZWUK)@member.fsf.org>
 pkgname=argparser
-pkgver=1.0
+pkgver=1.1
 pkgrel=1
 pkgdesc="Command line argument parser library, like getopt, except better."
 arch=('any')
