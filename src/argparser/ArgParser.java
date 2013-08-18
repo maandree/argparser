@@ -202,7 +202,7 @@ public class ArgParser
     /**
      * Option class
      */
-    public static class Option
+    public static abstract class Option
     {
 	/**
 	 * Constructor
@@ -239,6 +239,18 @@ public class ArgParser
 	 * Help text, multi-line
 	 */
 	public String help = null;
+	
+	
+	
+	/**
+	 * Invoked when the option is used
+	 * 
+	 * @param  option  The used option alternative
+	 */
+	public void trigger(final String option)
+	{
+	    /* Do nothing */
+	}
     }
     
     
@@ -367,6 +379,19 @@ public class ArgParser
 	 */
 	public Argumented(final String argument, final String... alternatives)
 	{   super(alternatives, 0, argument);
+	}
+	
+	
+	
+	/**
+	 * Invoked when the option is used
+	 * 
+	 * @param  option  The used option alternative
+	 * @param  value   The used value
+	 */
+	public void trigger(final String option, final String value)
+	{
+	    /* Do nothing */
 	}
     }
     
@@ -1038,7 +1063,9 @@ public class ArgParser
 	while (queue.size() > 0)
 	{   final String arg = queue.remove(0);
 	    if ((get > 0) && (dontget == 0))
-	    {   get--;
+	    {   String arg_opt = optqueue.get(optqueue.size() - get);
+		((Argumented)(this.optmap.get(arg_opt))).trigger(arg_opt, arg);
+		get--;
 		argqueue.add(arg);
 	    }
 	    else if (tmpdashed)
@@ -1056,6 +1083,7 @@ public class ArgParser
 		    else if ((opt != null) && (opt.getClass() == Argumentless.class))
 		    {	optqueue.add(arg);
 			argqueue.add(null);
+			opt.trigger(arg);
 		    }
 		    else if (arg.contains("="))
 		    {	String arg_opt = arg.substring(0, arg.indexOf('='));
@@ -1064,7 +1092,11 @@ public class ArgParser
 			{   optqueue.add(arg_opt);
 			    argqueue.add(arg.substring(arg.indexOf('=') + 1));
 			    if (arg_opt_opt instanceof Variadic)
-				dashed = true;
+			    {	dashed = true;
+				arg_opt_opt.trigger(arg_opt);
+			    }
+			    else
+				((Argumented)arg_opt_opt).trigger(arg_opt, arg.substring(arg.indexOf('=') + 1));
 			}
 			else
 			{   if (++this.unrecognisedCount <= 5)
@@ -1080,6 +1112,7 @@ public class ArgParser
 		    {	optqueue.add(arg);
 			argqueue.add(null);
 			dashed = true;
+			opt.trigger(arg);
 		    }
 		    else
 		    {   if (++this.unrecognisedCount <= 5)
@@ -1096,6 +1129,7 @@ public class ArgParser
 			    if (opt.getClass() == Argumentless.class)
 			    {   optqueue.add(narg);
 				argqueue.add(null);
+				opt.trigger(narg);
 			    }
 			    else if (opt.getClass() == Argumented.class)
 			    {	optqueue.add(narg);
@@ -1103,13 +1137,16 @@ public class ArgParser
 				if (nargarg.length() == 0)
 				    get++;
 				else
-				    argqueue.add(nargarg);
+				{   argqueue.add(nargarg);
+				    ((Argumented)opt).trigger(narg, nargarg);
+				}
 				break;
 			    }
 			    else
 			    {	optqueue.add(narg);
 				String nargarg = arg.substring(i);
 				argqueue.add(nargarg.length() > 0 ? nargarg : null);
+				opt.trigger(narg);
 				dashed = true;
 				break;
 			    }
