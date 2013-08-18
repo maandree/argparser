@@ -123,6 +123,11 @@ char* args_usage;
 char* args_longdescription;
 
 /**
+ * The error output file descriptor
+ */
+int args_out_fd;
+
+/**
  * The error output stream
  */
 FILE* args_out;

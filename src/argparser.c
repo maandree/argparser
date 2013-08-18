@@ -140,6 +140,7 @@ void args_init(char* description, char* usage, char* longdescription, char* prog
   args_description = description;
   args_usage = usage;
   args_longdescription = longdescription;
+  args_out_fd = usestderr ? 2 : 1;
   args_out = usestderr ? stderr : stdout;
   args_alternative = alternative;
   args_arguments_count = args_unrecognised_count = args_files_count = 0;
@@ -951,11 +952,9 @@ void args_help(long use_colours)
   long* lens;
   
   if ((use_colours != 0) && (use_colours != 1))
-    {
-      use_colours = 1;
-    }
+    use_colours = isatty(args_out_fd);
   
-  fprintf(args_out, "\033[01m%s\033[21m %s %s\n", args_program, dash, args_description);
+  fprintf(args_out, use_colours ? "\033[01m%s\033[21m %s %s\n" : "%s %s %s\n", args_program, dash, args_description);
   if (args_longdescription != null)
     fprintf(args_out, "%s\n", args_longdescription);
   fprintf(args_out, "\n");
@@ -964,7 +963,7 @@ void args_help(long use_colours)
     {
       long n = 0, lines = 0, i = 0;
       char* buf;
-      fprintf(args_out, "\033[01mUSAGE:\033[21m\n");
+      fprintf(args_out, use_colours ? "\033[01mUSAGE:\033[21m\n" : "USAGE:\n");
       while (*(args_usage + n))
 	if (*(args_usage + n++) == '\n')
 	  lines++;
@@ -1016,7 +1015,7 @@ void args_help(long use_colours)
     *(empty + maxfirstlen) = 0;
   }
   
-  fprintf(args_out, "\033[01mSYNOPSIS:\033[21m\n");
+  fprintf(args_out, use_colours ? "\033[01mSYNOPSIS:\033[21m\n" : "SYNOPSIS:\n");
   lines = (char**)malloc(copts * sizeof(char*));
   lens = (long*)malloc(copts * sizeof(long));
   {
@@ -1054,41 +1053,48 @@ void args_help(long use_colours)
 	    m++;
 	l = maxfirstlen + 6 + n + m;
 	*(lines + count) = line = (char*)malloc((1 + 17 + 16 + 8 + maxfirstlen + n) * sizeof(char));
-	for (j = 0; *("    \033[02m" + j); j++)
-	  *line++ = *("    \033[02m" + j);
+	for (j = 0; *((use_colours ? "    \033[02m" : "    ") + j); j++)
+	  *line++ = *((use_colours ? "    \033[02m" : "    ") + j);
 	for (j = 0; *(first + j); j++)
 	  *line++ = *(first + j);
 	if (first_extra != null)
 	  for (j = 0; *(first_extra + j); j++)
 	    *line++ = *(first_extra + j);
-	for (j = 0; *("\033[22m  " + j); j++)
-	  *line++ = *("\033[22m  " + j);
-	if ((index++ & 1) == 0)
-	  for (j = 0; *("\033[36;01m" + j); j++)
-	    *line++ = *("\033[36;01m" + j);
-	else
-	  for (j = 0; *("\033[34;01m" + j); j++)
-	    *line++ = *("\033[34;01m" + j);
+	for (j = 0; *((use_colours ? "\033[22m  " : "  ") + j); j++)
+	  *line++ = *((use_colours ? "\033[22m  " : "  ") + j);
+	if (use_colours)
+	  {
+	    if ((index++ & 1) == 0)
+	      for (j = 0; *("\033[36;01m" + j); j++)
+		*line++ = *("\033[36;01m" + j);
+	    else
+	      for (j = 0; *("\033[34;01m" + j); j++)
+		*line++ = *("\033[34;01m" + j);
+	  }
 	for (j = 0; *(last + j); j++)
 	  *line++ = *(last + j);
 	if (type == VARIADIC)
 	  {
-	    for (j = 0; *(" [\033[04m" + j); j++)
-	      *line++ = *(" [\033[04m" + j);
+	    for (j = 0; *((use_colours ? " [\033[04m" : " [") + j); j++)
+	      *line++ = *((use_colours ? " [\033[04m" : " [") + j);
 	    for (j = 0; *(arg + j); j++)
 	      *line++ = *(arg + j);
-	    for (j = 0; *("\033[24m...]" + j); j++)
-	      *line++ = *("\033[24m...]" + j);
+	    for (j = 0; *((use_colours ? "\033[24m...]" : "...]") + j); j++)
+	      *line++ = *((use_colours ? "\033[24m...]" : "...]") + j);
 	    l += 6;
 	  }
 	else if (type == ARGUMENTED)
 	  {
-	    for (j = 0; *(" \033[04m" + j); j++)
-	      *line++ = *(" \033[04m" + j);
+	    if (use_colours)
+	      for (j = 0; *(" \033[04m" + j); j++)
+		*line++ = *(" \033[04m" + j);
+	    else
+	      *line++ = ' ';
 	    for (j = 0; *(arg + j); j++)
 	      *line++ = *(arg + j);
-	    for (j = 0; *("\033[24m" + j); j++)
-	      *line++ = *("\033[24m" + j);
+	    if (use_colours)
+	      for (j = 0; *("\033[24m" + j); j++)
+		*line++ = *("\033[24m" + j);
 	    l += 1;
 	  }
 	*line = 0;
@@ -1148,7 +1154,10 @@ void args_help(long use_colours)
 	      fprintf(args_out, "%s\033[00m\n", *(jumps + j));
 	    }
 	  else
-	    fprintf(args_out, "%s\033[%sm%s\033[00m\n", empty, colour, *(jumps + j));
+	    if (use_colours)
+	      fprintf(args_out, "%s\033[%sm%s\033[00m\n", empty, colour, *(jumps + j));
+	    else
+	      fprintf(args_out, "%s%s\n", empty, *(jumps + j));
 	free(buf);
 	free(jumps);
       }
