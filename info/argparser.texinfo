@@ -324,6 +324,11 @@ you can set, using a true value, to always use colours, or, using
 a false value, to never user colours. Otherwise, colours will
 be used if the output is not piped.
 
+In the Bash version, @code{0} is considered to be true, all
+other values are considered to be false, except an empty string
+(used if obmitted) which is used for automatic, that is,
+true if the output is not piped.
+
 
 
 @node GNU Free Documentation License

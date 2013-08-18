@@ -66,7 +66,8 @@ function args_init
     if [ "$args_out" = "" ]; then
         args_out="1"
     fi
-    args_out="$(realpath "/proc/$$/fd/${args_out}")"
+    args_out_index="${args_out}"
+    args_out="/proc/$$/fd/${args_out}"
     args_files=()
     args_alternative="$6"
 }
@@ -337,29 +338,63 @@ function args_add_variadic
 }
 
 
-# Prints a colourful help message
+# Prints a help message
+# 
+# @param  $1:bool?  Set to 0 for no colours, 1 for colours and empty for colours if not piped
 function args_help
 {
     local dash first last maxfirstlen=0 i=0 n help start count lines=() lens=()
-    local empty="        " line l col index=0 colour _colour
+    local empty="        " line l col index=0 colour _colour use_colours="$1"
+    
+    if [ "${use_colours}" = "" ]; then
+	tty <&"${args_out_index}" >/dev/null ## the order of the redirects is important
+	use_colours=$?
+    fi
+    
+    function args__bold
+    {
+	if [ ${use_colours} = 0 ]; then
+	    echo -en "\e[01m" ; echo -n "$1" ; echo -en "\e[21m"
+	else
+	    echo -n "$1"
+	fi
+    }
+    
+    function args__dim
+    {
+	if [ ${use_colours} = 0 ]; then
+	    echo -en "\e[02m" ; echo -n "$1" ; echo -en "\e[22m"
+	else
+	    echo -n "$1"
+	fi
+    }
+    
+    function args__emph
+    {
+	if [ ${use_colours} = 0 ]; then
+	    echo -en "\e[04m" ; echo -n "$1" ; echo -en "\e[24m"
+	else
+	    echo -n "$1"
+	fi
+    }
     
     dash="—"
     if [ ${args_linuxvt} = 1 ]; then
 	dash="-"
     fi
-    echo -en "\e[01m" >> "${args_out}"
+    [ ${use_colours} = 0 ] && echo -en "\e[01m" >> "${args_out}"
     echo -n "${args_program}" >> "${args_out}"
-    echo -en "\e[21m" >> "${args_out}"
-    echo " ${dash} ${args_description}" >> "${args_out}"
+    [ ${use_colours} = 0 ] && echo -en "\e[21m" >> "${args_out}"
+    echo " ${dash} ${args_description}" | sed -e 's:\x1b\[[0-9;]*m::g' >> "${args_out}"
     
     echo >> "${args_out}"
     if [ ! "${args_longdescription}" = "" ]; then
-	echo "${args_longdescription}" >> "${args_out}"
+	echo "${args_longdescription}" | sed -e 's:\x1b\[[0-9;]*m::g' >> "${args_out}"
     fi
     echo >> "${args_out}"
     
     if [ ! "${args_usage}" = "" ]; then
-	echo -en "\e[01mUSAGE:\e[21m" >> "${args_out}"
+	echo -en "$(args__bold USAGE:)" >> "${args_out}"
 	first=1
 	while read line; do
 	    if [ $first = 1 ]; then
@@ -392,7 +427,7 @@ function args_help
     done
     empty="${empty::$maxfirstlen}"
     
-    echo -e "\e[01mSYNOPSIS:\e[21m" >> "${args_out}"
+    echo -e "$(args__bold SYNOPSIS:)" >> "${args_out}"
     i=0
     while (( $i < $n )); do
 	 type=${args_options[(( $i * 6 + 0 ))]}
@@ -410,13 +445,13 @@ function args_help
 	    first="${args_opts_alts[(( $start ))]}"
 	    first="${first}${empty:${#first}}"
 	fi
-	line="$(echo -en "    \e[02m")${first}$(echo -en "\e[22m  ")/ARGPARSER_COLOUR/${last}"
+	line="$(echo -en "    ")$(args__dim "${first}")$(echo -en "  ")/ARGPARSER_COLOUR/${last}"
 	l=$(( ${#first} + ${#last} + 6 ))
 	if [ $type = ${args_ARGUMENTED} ]; then
-	    line+="$(echo -en " \e[04m")${arg}$(echo -en "\e[24m")"
+	    line+="$(echo -en " ")$(args__emph "${arg}")"
 	    l=$(( $l + ${#arg} + 1 ))
 	elif [ $type = ${args_VARIADIC} ]; then
-	    line+="$(echo -en " [\e[04m")${arg}$(echo -en "\e[24m...]")"
+	    line+="$(echo -en " [")$(args__emph "${arg}")$(echo -en "...]")"
 	    l=$(( $l + ${#arg} + 6 ))
 	fi
 	lines+=( "$line" )
@@ -444,18 +479,26 @@ function args_help
 	fi
 	first=1
 	colour=$(( 36 - 2 * ($index & 1) ))
-	_colour="$(sed -e "s:/ARGPARSER_COLOUR/:\x1b[${colour};01m:g" <<< "${lines[$index]}")"
+	[ ${args_linuxvt} = 0 ]
+	if [ ${use_colours} = 0 ]; then
+	    _colour="$(sed -e "s:/ARGPARSER_COLOUR/:\x1b[${colour};01m:g" <<< "${lines[$index]}")"
+	else
+	    _colour="$(sed -e "s:/ARGPARSER_COLOUR/::g" <<< "${lines[$index]}")"
+	fi
 	echo -n "${_colour}${empty:${lens[$index]}}" >> "${args_out}"
 	echo -e "${help}" | while read line; do
 	    if [ $first = 1 ]; then
 		first=0
-		echo -n "${line}" >> "${args_out}"
-		echo -e "\e[00m" >> "${args_out}"
 	    else
-		echo -en "${empty}\e[${colour}m" >> "${args_out}"
-		echo -n "${line}" >> "${args_out}"
-		echo -e "\e[00m" >> "${args_out}"
+		if [ ${use_colours} = 0 ]; then
+		    echo -en "${empty}\e[${colour}m" >> "${args_out}"
+		else
+		    echo -en "${empty}" >> "${args_out}"
+		fi
 	    fi
+	    echo -n "${line}" >> "${args_out}"
+	    [ ${use_colours} = 0 ] && echo -e "\e[00m" >> "${args_out}"
+	    [ ${use_colours} = 0 ] || echo >> "${args_out}"
 	done
 	(( index++ ))
     done
