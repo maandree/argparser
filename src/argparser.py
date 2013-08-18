@@ -129,51 +129,54 @@ class ArgParser():
         self.__out.write((str(text) + end).encode('utf-8'))
     
     
-    def add_argumentless(self, alternatives, default = 0, help = None):
+    def add_argumentless(self, alternatives, default = 0, help = None, trigger = None):
         '''
         Add option that takes no arguments
         
-        @param  alternatives:list<str>  Option names
-        @parma  default:str|int         The default argument's name or index
-        @param  help:str?               Short description, use `None` to hide the option
+        @param  alternatives:list<str>    Option names
+        @param  default:str|int           The default argument's name or index
+        @param  help:str?                 Short description, use `None` to hide the option
+        @param  trigger:(str, str)?→void  Function to invoke when the option is used, with the used alternative and the standard alternative
         '''
         stdalt = alternatives[default] if isinstance(default, int) else default
         self.__options.append((ArgParser.ARGUMENTLESS, alternatives, None, help, stdalt))
         self.opts[stdalt] = None
         for alt in alternatives:
-            self.optmap[alt] = (stdalt, ArgParser.ARGUMENTLESS)
+            self.optmap[alt] = (stdalt, ArgParser.ARGUMENTLESS, trigger if trigger is not None else lambda used, std : True)
     
     
-    def add_argumented(self, alternatives, default = 0, arg = 'ARG', help = None):
+    def add_argumented(self, alternatives, default = 0, arg = 'ARG', help = None, trigger = None):
         '''
         Add option that takes one argument
         
-        @param  alternatives:list<str>  Option names
-        @parma  default:str|int         The default argument's name or index
-        @param  arg:str                 The name of the takes argument, one word
-        @param  help:str?               Short description, use `None` to hide the option
+        @param  alternatives:list<str>         Option names
+        @param  default:str|int                The default argument's name or index
+        @param  arg:str                        The name of the takes argument, one word
+        @param  help:str?                      Short description, use `None` to hide the option
+        @param  trigger:(str, str, str)?→void  Function to invoke when the option is used, with the used alternative, the standard alternative and the used argument
         '''
         stdalt = alternatives[default] if isinstance(default, int) else default
         self.__options.append((ArgParser.ARGUMENTED, alternatives, arg, help, stdalt))
         self.opts[stdalt] = None
         for alt in alternatives:
-            self.optmap[alt] = (stdalt, ArgParser.ARGUMENTED)
+            self.optmap[alt] = (stdalt, ArgParser.ARGUMENTED, trigger if trigger is not None else lambda used, std, value : True)
     
     
-    def add_variadic(self, alternatives, default = 0, arg = 'ARG', help = None):
+    def add_variadic(self, alternatives, default = 0, arg = 'ARG', help = None, trigger = None):
         '''
         Add option that takes all following argument
         
-        @param  alternatives:list<str>  Option names
-        @parma  default:str|int         The default argument's name or index
-        @param  arg:str                 The name of the takes arguments, one word
-        @param  help:str?               Short description, use `None` to hide the option
+        @param  alternatives:list<str>    Option names
+        @param  default:str|int           The default argument's name or index
+        @param  arg:str                   The name of the takes arguments, one word
+        @param  help:str?                 Short description, use `None` to hide the option
+        @param  trigger:(str, str)?→void  Function to invoke when the option is used, with the used alternative and the standard alternative
         '''
         stdalt = alternatives[default] if isinstance(default, int) else default
         self.__options.append((ArgParser.VARIADIC, alternatives, arg, help, stdalt))
         self.opts[stdalt] = None
         for alt in alternatives:
-            self.optmap[alt] = (stdalt, ArgParser.VARIADIC)
+            self.optmap[alt] = (stdalt, ArgParser.VARIADIC, trigger if trigger is not None else lambda used, std : True)
     
     
     def parse(self, argv = sys.argv, alternative = False):
@@ -212,6 +215,8 @@ class ArgParser():
             arg = queue[0]
             queue = queue[1:]
             if (get > 0) and (dontget == 0):
+                arg_opt = optqueue[-get]
+                self.optmap[arg_opt][2](arg_opt, self.optmap[arg_opt][0], arg)
                 get -= 1
                 argqueue.append(arg)
             elif tmpdashed:
@@ -225,6 +230,7 @@ class ArgParser():
                     if dontget > 0:
                         dontget -= 1
                     elif (arg in self.optmap) and (self.optmap[arg][1] == ArgParser.ARGUMENTLESS):
+                        self.optmap[arg][2](arg, self.optmap[arg][0])
                         optqueue.append(arg)
                         argqueue.append(None)
                     elif '=' in arg:
@@ -234,12 +240,15 @@ class ArgParser():
                             argqueue.append(arg[arg.index('=') + 1:])
                             if self.optmap[arg_opt][1] == ArgParser.VARIADIC:
                                 dashed = True
+                            else:
+                                self.optmap[arg_opt][2](arg_opt, self.optmap[arg_opt][0], argqueue[-1])
                         else:
                             unrecognised(arg)
                     elif (arg in self.optmap) and (self.optmap[arg][1] == ArgParser.ARGUMENTED):
                         optqueue.append(arg)
                         get += 1
                     elif (arg in self.optmap) and (self.optmap[arg][1] == ArgParser.VARIADIC):
+                        self.optmap[arg][2](arg, self.optmap[arg][0])
                         optqueue.append(arg)
                         argqueue.append(None)
                         dashed = True
@@ -254,6 +263,7 @@ class ArgParser():
                         i += 1
                         if (narg in self.optmap):
                             if self.optmap[narg][1] == ArgParser.ARGUMENTLESS:
+                                self.optmap[narg][2](narg, self.optmap[narg][0])
                                 optqueue.append(narg)
                                 argqueue.append(None)
                             elif self.optmap[narg][1] == ArgParser.ARGUMENTED:
@@ -263,8 +273,10 @@ class ArgParser():
                                     get += 1
                                 else:
                                     argqueue.append(nargarg)
+                                    self.optmap[narg][2](narg, self.optmap[narg][0], nargarg)
                                 break
                             elif self.optmap[narg][1] == ArgParser.VARIADIC:
+                                self.optmap[narg][2](narg, self.optmap[narg][0])
                                 optqueue.append(narg)
                                 nargarg = arg[i:]
                                 argqueue.append(nargarg if len(nargarg) > 0 else None)
