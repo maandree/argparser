@@ -962,6 +962,19 @@ public class ArgParser
      */
     public boolean parse(final String[] argv)
     {
+	return parse(argv, false);
+    }
+    
+    
+    /**
+     * Parse arguments
+     * 
+     * @param   args         The command line arguments, however it should not include the execute file at index 0
+     * @param   alternative  Use single dash/plus for long options
+     * @return               Whether no unrecognised option is used
+     */
+    public boolean parse(final String[] argv, final boolean alternative)
+    {
 	this.arguments = argv;
 	
 	final ArrayList<String> argqueue = new ArrayList<String>();
@@ -987,7 +1000,7 @@ public class ArgParser
 	    else if (arg.equals("++"))  tmpdashed = true;
 	    else if (arg.equals("--"))  dashed = true;
 	    else if ((arg.length() > 1) && ((arg.charAt(0) == '-') || (arg.charAt(0) == '+')))
-		if ((arg.length() > 2) && (arg.charAt(1) == arg.charAt(0)))
+		if (alternative || ((arg.length() > 2) && (arg.charAt(1) == arg.charAt(0))))
 		{   Option opt = this.optmap.get(arg);
 		    if (dontget > 0)
 			dontget--;

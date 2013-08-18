@@ -41,7 +41,7 @@ int main(int argc, char** argv)
 	    "GNU Affero General Public License for more details.\n"
 	    "\n"
 	    "You should have received a copy of the GNU Affero General Public License\n"
-	    "along with this library.  If not, see <http://www.gnu.org/licenses/>.", 0, 1);
+	    "along with this library.  If not, see <http://www.gnu.org/licenses/>.", 0, 1, 0);
   
   args_add_option(args_new_argumentless(0, "-h", "-?", "--help", NULL), "Prints this help message\n(and exits)");
   args_add_option(args_new_argumentless(0, "--hello", NULL), "Prints the text: hello world'");

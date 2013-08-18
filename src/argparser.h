@@ -168,14 +168,15 @@ long args_files_count;
  * @param  longdescription  Long, multi-line, description of the program, may be `null`
  * @param  program          The name of the program, `null` for automatic
  * @param  usestderr        Whether to use stderr instead of stdout
+ * @param  alternative      Whether to use single dash/plus long options
  */
-extern void args_init(char* description, char* usage, char* longdscription, char* program, long usestderr);
+extern void args_init(char* description, char* usage, char* longdscription, char* program, long usestderr, long alternative);
 
 
 /**
  * Disposes of all resources, run this when you are done
  */
-extern void args_dispose();
+extern void args_dispose(void);
 
 
 /**
@@ -213,14 +214,14 @@ extern args_Option args_new_variadic(char* argument, int standard, char* alterna
  * 
  * @return  All options
  */
-extern args_Option* args_get_options();
+extern args_Option* args_get_options(void);
 
 /**
  * Gets the number of elements in the array returned by `args_get_options`
  * 
  * @return  The number of elements in the array returned by `args_get_options`
  */
-extern long args_get_options_count();
+extern long args_get_options_count(void);
 
 /**
  * Gets the option with a specific index
@@ -284,14 +285,14 @@ extern char* args_options_get_help(long index);
  * 
  * @return  The available options
  */
-extern char** args_get_opts();
+extern char** args_get_opts(void);
 
 /**
  * Gets the number of available options
  * 
  * @return  The number of available options
  */
-extern long args_get_opts_count();
+extern long args_get_opts_count(void);
 
 /**
  * Gets whether an option is available
@@ -369,14 +370,14 @@ extern long args_opts_used(char* name);
  * 
  * @return  All alternativ names that exists for all options
  */
-extern char** args_get_optmap();
+extern char** args_get_optmap(void);
 
 /**
  * Gets the number of elements returned by `args_get_optmap`
  * 
  * @return  The number of elements returned by `args_get_optmap`
  */
-extern long args_get_optmap_count();
+extern long args_get_optmap_count(void);
 
 /**
  * Maps alternative name for a option
@@ -489,12 +490,12 @@ extern long args_test_exclusiveness(char** exclusives, long exclusives_count);
 /**
  * Maps up options that are alternatives to the first alternative for each option
  */
-extern void args_support_alternatives();
+extern void args_support_alternatives(void);
 
 /**
  * Prints a colourful help message
  */
-extern void args_help();
+extern void args_help(void);
 
 /**
  * Parse arguments

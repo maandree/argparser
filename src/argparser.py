@@ -176,12 +176,13 @@ class ArgParser():
             self.optmap[alt] = (stdalt, ArgParser.VARIADIC)
     
     
-    def parse(self, argv = sys.argv):
+    def parse(self, argv = sys.argv, alternative = False):
         '''
         Parse arguments
         
-        @param   args:list<str>  The command line arguments, should include the execute file at index 0, `sys.argv` is default
-        @return  :bool           Whether no unrecognised option is used
+        @param   args:list<str>    The command line arguments, should include the execute file at index 0, `sys.argv` is default
+        @param   alternative:bool  Use single dash/plus for long options
+        @return  :bool             Whether no unrecognised option is used
         '''
         self.argcount = len(argv) - 1
         self.arguments = argv[1:]
@@ -220,7 +221,7 @@ class ArgParser():
             elif arg == '++':   tmpdashed = True
             elif arg == '--':   dashed = True
             elif (len(arg) > 1) and (arg[0] in ('-', '+')):
-                if (len(arg) > 2) and (arg[:2] in ('--', '++')):
+                if alternative or ((len(arg) > 2) and (arg[:2] in ('--', '++'))):
                     if dontget > 0:
                         dontget -= 1
                     elif (arg in self.optmap) and (self.optmap[arg][1] == ArgParser.ARGUMENTLESS):

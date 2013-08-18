@@ -120,11 +120,13 @@ of the option and may span multiple lines but should only do so if the
 lines below the first is just extra details.
 
 When you have populated your @code{ArgParser} with options, it is time
-to parse arguments, it is done with the method @code{parses} that optional
+to parse arguments, it is done with the method @code{parse} that optional
 takes and list of arguments. If you choose to use a list of arguments
 rather than letting @code{ArgParser} use arguments used to start the
-program, the first ement will not be parsed as it is assumed to be the
-executable.
+program, the first element will not be parsed as it is assumed to be the
+executable. If you want long options with just one dash or plus, which
+disables short options, you can pass @code{True}, as the second (option)
+argument.
 
 If you now want to use any option alternative rather than just the
 primary (using just the primary is good to keep your code consistent)
@@ -148,7 +150,7 @@ is a return code can be provided if you want the program to exit if there
 are out of context option. Remember that you should also check that the
 number of times an option is used is acceptable.
 
-After running @code{parses}, your @code{ArgParser} has five attributes:
+After running @code{parse}, your @code{ArgParser} has five attributes:
 @code{unrecognisedCount}, the number of unrecognised options; and
 @code{message}, the join of @code{files} which is all arguments not
 associated with an option, @code{arguments} the parsed arguments, and
@@ -185,7 +187,9 @@ Further @code{support_alternatives}, @code{test_exclusiveness},
 without @code{min} is named @code{testFilesMax} and @code{testFiles}
 without @code{max} is named @code{testFilesMin}.
 
-@code{parse} takes an array of arguments, which excludes the executable.
+@code{parse} takes an array of arguments, which excludes the executable,
+and optionally whether to use long options with one dash or plus and no
+short options.
 
 @code{message} is a @code{String}, @code{files} is a @code{ArrayList<String>},
 @code{unrecognisedCount} is a @code{int}, @code{arguments} is a @code{String[]},
@@ -215,7 +219,9 @@ namespace @code{args}. When you are done using ArgParser you should
 free its resources using function @code{args_dispose}.
 
 @code{args_init} corresponds the the @code{ArgParser} constructor in
-the Python version, but all parameters are manditory.
+the Python version, but all parameters are manditory, additionally
+there as an argument that should be set to be true if you want to use
+long options with one dash or plus but not short options.
 
 @code{args_arguments}, @code{args_arguments_count},
 @code{args_unrecognised_count}, @code{args_message} and @code{args_files}

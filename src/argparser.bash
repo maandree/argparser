@@ -44,6 +44,7 @@ args_VARIADIC=2
 # @param  $3:str  Long, multi-line, description of the program, empty for none
 # @param  $4:str  The name of the program, empty for automatic
 # @param  $5:str  Output channel, by fd
+# @param  $6:int  Set to 1 to use single dash/plus for long options
 function args_init
 {
     test "$TERM" = linux
@@ -67,6 +68,7 @@ function args_init
     fi
     args_out="$(realpath "/proc/$$/fd/${args_out}")"
     args_files=()
+    args_alternative="$6"
 }
 
 
@@ -494,7 +496,7 @@ function args_parse
 	    elif [ "$arg" = "--" ]; then
 		dashed=1
 	    elif (( ${#arg} > 1 )) && [ "${_arg::1}" = "-" ]; then
-		if (( ${#arg} > 2 )) && [ "${arg::1}" = "${arg:1:1}" ]; then
+		if [ "${args_alternative}" = 1 ] || (( ${#arg} > 2 )) && [ "${arg::1}" = "${arg:1:1}" ]; then
 		    if [ ! $dontget = 0 ]; then
 			(( dontget-- ))
 		    elif [ ! -e "${args_optmap}/${arg}" ]; then

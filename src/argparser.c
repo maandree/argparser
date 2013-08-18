@@ -46,6 +46,11 @@ static void** map_free(args_Map* map);
 static long args_linuxvt;
 
 /**
+ * Whether to use single dash/plus long options
+ */
+static long args_alternative;
+
+/**
  * Whether to free the member of `args_program`
  */
 static long args_program_dispose;
@@ -111,8 +116,9 @@ static long args_map_values_size;
  * @param  longdescription  Long, multi-line, description of the program, may be `null`
  * @param  program          The name of the program, `null` for automatic
  * @param  usestderr        Whether to use stderr instead of stdout
+ * @param  alternative      Whether to use single dash/plus long options
  */
-void args_init(char* description, char* usage, char* longdescription, char* program, long usestderr)
+void args_init(char* description, char* usage, char* longdescription, char* program, long usestderr, long alternative)
 {
   char* term = getenv("TERM");
   args_linuxvt = 0;
@@ -135,6 +141,7 @@ void args_init(char* description, char* usage, char* longdescription, char* prog
   args_usage = usage;
   args_longdescription = longdescription;
   args_out = usestderr ? stderr : stdout;
+  args_alternative = alternative;
   args_arguments_count = args_unrecognised_count = args_files_count = 0;
   args_files = args_arguments = null;
   args_message = null;
@@ -1200,7 +1207,7 @@ long args_parse(int argc, char** argv)
       else if ((*arg == '-') && (*(arg + 1) == '-') && (*(arg + 2) == 0))
 	dashed = true;
       else if (((*arg == '-') || (*arg == '+')) && (*(arg + 1) != 0))
-	if (*arg == *(arg + 1))
+	if (args_alternative || (*arg == *(arg + 1)))
 	  {
 	    if (dontget > 0)
 	      dontget--;
