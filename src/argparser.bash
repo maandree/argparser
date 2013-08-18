@@ -270,15 +270,26 @@ function args_test_files
 }
 
 
+# Noop
+function args_noop
+{
+    true
+}
+
+
 # Add option that takes no arguments
 # 
-# @param  $1:int     The default argument's index
-# @param  $2:str     Short description, use empty to hide the option
+# @param  $1:str?    Trigger to invoken when to option is used, with the used option and the standard option
+# @param  $2:int     The default argument's index
+# @param  $3:str     Short description, use empty to hide the option
 # @param  ...:(str)  Option names
 function args_add_argumentless
 {
-    local default="$1" help="$2" std alts alt
-    shift 2
+    local trigger="$1" default="$2" help="$3" std alts alt
+    shift 3
+    if [ "${trigger}" = "" ]; then
+	trigger=args_noop
+    fi
     alts=( "$@" )
     std="${alts[$default]}"
     args_options+=( ${args_ARGUMENTLESS} "" "${help}" ${#args_opts_alts[@]} $# "${std}" )
@@ -286,22 +297,27 @@ function args_add_argumentless
     for alt in "${alts[@]}"; do
 	echo "$std" > "${args_optmap}/${alt}"
 	echo ${args_ARGUMENTLESS} >> "${args_optmap}/${alt}"
+	echo "$trigger" >> "${args_optmap}/${alt}"
     done
 }
 
 
 # Add option that takes one argument
 # 
-# @param  $1:int     The default argument's index
-# @param  $2:str     The name of the takes argument, one word
-# @param  $3:str     Short description, use empty to hide the option
+# @param  $1:str?    Trigger to invoken when to option is used, with the used option, the standard option and the used value
+# @param  $2:int     The default argument's index
+# @param  $3:str     The name of the takes argument, one word
+# @param  $4:str     Short description, use empty to hide the option
 # @param  ...:(str)  Option names
 function args_add_argumented
 {
-    local default="$1" arg="$2" help="$3" std alts alt
-    shift 3
+    local trigger="$1" default="$2" arg="$3" help="$4" std alts alt
+    shift 4
     if [ "${arg}" = "" ]; then
 	arg="ARG"
+    fi
+    if [ "${trigger}" = "" ]; then
+	trigger=args_noop
     fi
     alts=( "$@" )
     std="${alts[$default]}"
@@ -310,22 +326,27 @@ function args_add_argumented
     for alt in "${alts[@]}"; do
 	echo "$std" > "${args_optmap}/${alt}"
 	echo ${args_ARGUMENTED} >> "${args_optmap}/${alt}"
+	echo "$trigger" >> "${args_optmap}/${alt}"
     done
 }
 
 
 # Add option that takes all following arguments
 # 
-# @param  $1:int     The default argument's index
-# @param  $2:str     The name of the takes argument, one word
-# @param  $3:str     Short description, use empty to hide the option
+# @param  $1:str?    Trigger to invoken when to option is used, with the used option and the standard option
+# @param  $2:int     The default argument's index
+# @param  $3:str     The name of the takes argument, one word
+# @param  $4:str     Short description, use empty to hide the option
 # @param  ...:(str)  Option names
 function args_add_variadic
 {
-    local default="$1" arg="$2" help="$3" std alts alt type arg
-    shift 3
+    local trigger="$1" default="$2" arg="$3" help="$4" std alts alt type arg
+    shift 4
     if [ "${arg}" = "" ]; then
 	arg="ARG"
+    fi
+    if [ "${trigger}" = "" ]; then
+	trigger=args_noop
     fi
     alts=( "$@" )
     std="${alts[$default]}"
@@ -334,6 +355,7 @@ function args_add_variadic
     for alt in "${alts[@]}"; do
 	echo "$std" > "${args_optmap}/${alt}"
 	echo ${args_VARIADIC} >> "${args_optmap}/${alt}"
+	echo "$trigger" >> "${args_optmap}/${alt}"
     done
 }
 
@@ -513,8 +535,8 @@ function args_help
 # @exit             Whether no unrecognised option is used
 function args_parse
 {
-    local nulqueue=() argqueue=() optqueue=() queue=() opt arg _arg argnull
-    local dashed=0 tmpdashed=0 get=0 dontget=0 rc=0 i n more std sign type
+    local nulqueue=() argqueue=() optqueue=() queue=() opt arg _arg argnull trigger
+    local dashed=0 tmpdashed=0 get=0 dontget=0 rc=0 i n more std sign type opt_arg
     
     args_argcount=$#
     args_unrecognised_count=0
@@ -526,6 +548,10 @@ function args_parse
 	    shift 1
 	    _arg="${arg/+/-}"
 	    if [ ! $get = 0 ] && [ $dontget = 0 ]; then
+		opt_arg="${optqueue[${#optqueue[@]} - ${get}]}"
+		std="$(head -n 1 < "${args_optmap}/${opt_arg}")"
+		trigger="$(tail -n 1 < "${args_optmap}/${opt_arg}")"
+		"$trigger" "${opt_arg}" "${std}" "${arg}"
 		(( get-- ))
 		argqueue+=( "$arg" )
 		nulqueue+=( 0 )
@@ -549,20 +575,26 @@ function args_parse
 			fi
 			rc=1
 		    else
-			type="$(tail -n 1 < "${args_optmap}/${arg}")"
+			std="$(head -n 1 < "${args_optmap}/${arg}")"
+			type="$(head -n 2 < "${args_optmap}/${arg}" | tail -n 1)"
+			trigger="$(tail -n 1 < "${args_optmap}/${arg}")"
 			if [ $type = ${args_ARGUMENTLESS} ]; then
 			    optqueue+=( "${arg}" )
 			    argqueue+=( "" )
 			    nulqueue+=( 1 )
+			    "$trigger" "${arg}" "${std}"
 			elif [ ! "${arg/=/}" = "${arg}" ]; then
 			    _arg="${arg%%=*}"
-			    type="$(tail -n 1 < "${args_optmap}/${_arg}")"
+			    type="$(head -n 1 < "${args_optmap}/${_arg}" | tail -n 1)"
 			    if (( $type >= ${args_ARGUMENTED} )); then
 				optqueue+=( "${_arg}" )
 				argqueue+=( "${arg#*=}" )
 				nulqueue+=( 0 )
 				if [ $type = ${args_VARIADIC} ]; then
 				    dashed=1
+				    "$trigger" "${arg}" "${std}"
+				else
+				    "$trigger" "${arg}" "${std}" "${arg#*=}"
 				fi
 			    else
 				(( args_unrecognised_count++ ))
@@ -589,11 +621,14 @@ function args_parse
 			_arg="$sign${arg:$i:1}"
 			(( i++ ))
 			if [ -e "${args_optmap}/${_arg}" ]; then
-			    type="$(tail -n 1 < "${args_optmap}/${_arg}")"
+			    std="$(head -n 1 < "${args_optmap}/${_arg}")"
+			    type="$(head -n 2 < "${args_optmap}/${_arg}" | tail -n 1)"
+			    trigger="$(tail -n 1 < "${args_optmap}/${_arg}")"
 			    optqueue+=( "${_arg}" )
 			    if [ $type = ${args_ARGUMENTLESS} ]; then
 				argqueue+=( "" )
 				nulqueue+=( 1 )
+				"$trigger" "${_arg}" "${std}"
 			    elif [ $type = ${args_ARGUMENTED} ]; then
 				if [ ${#arg} = $i ]; then
 				    (( get++ ))
@@ -611,6 +646,7 @@ function args_parse
 				    nulqueue+=( 0 )
 				fi
 				dashed=1
+				"$trigger" "${_arg}" "${std}"
 				break
 			    fi
 			else
