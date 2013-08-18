@@ -57,6 +57,23 @@ typedef struct
    */
   char* help;
   
+  /**
+   * Invoked when the option is used
+   * 
+   * @param  The used option alternative
+   * @param  The standard option alternative
+   */
+  void (*trigger)(char*, char*);
+    
+  /**
+   * Invoked when the option is used
+   * 
+   * @param  The used option alternative
+   * @param  The standard option alternative
+   * @param  The used value
+   */
+  void (*triggerv)(char*, char*, char*);
+  
 } args_Option;
 
 
@@ -187,31 +204,34 @@ extern void args_dispose(void);
 /**
  * Creates, but does not add, a option that takes no arguments
  * 
+ * @param   trigger          Function to invoked when the option is used, with the used option and the standard option
  * @param   standard         The index of the standard alternative name
- * @param   alternatives...  The alterntive names, end with `null`
+ * @param   alternatives...  The alternative names, end with `null`
  * @return                   The created option
  */
-extern args_Option args_new_argumentless(int standard, char* alternatives, ...);
+extern args_Option args_new_argumentless(void (*trigger)(char*, char*), int standard, char* alternatives, ...);
 
 /**
  * Creates, but does not add, a option that takes one argument per use
  * 
+ * @param   trigger          Function to invoked when the option is used, with the used option, the standard option and the used value
  * @param   argument         The new of the argument
  * @param   standard         The index of the standard alternative name
- * @param   alternatives...  The alterntive names, end with `null`
+ * @param   alternatives...  The alternative names, end with `null`
  * @return                   The created option
  */
-extern args_Option args_new_argumented(char* argument, int standard, char* alternatives, ...);
+extern args_Option args_new_argumented(void (*trigger)(char*, char*, char*), char* argument, int standard, char* alternatives, ...);
 
 /**
  * Creates, but does not add, a option that takes all following arguments
  * 
+ * @param   trigger          Function to invoked when the option is used, with the used option and the standard option
  * @param   argument         The new of the argument
  * @param   standard         The index of the standard alternative name
- * @param   alternatives...  The alterntive names, end with `null`
+ * @param   alternatives...  The alternative names, end with `null`
  * @return                   The created option
  */
-extern args_Option args_new_variadic(char* argument, int standard, char* alternatives, ...);
+extern args_Option args_new_variadic(void (*trigger)(char*, char*), char* argument, int standard, char* alternatives, ...);
 
 
 /**

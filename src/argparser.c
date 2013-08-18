@@ -38,6 +38,8 @@ static void* map_get(args_Map* map, char* key);
 static void map_put(args_Map* map, char* key, void* value);
 static void _map_free(void** level, long level_size);
 static void** map_free(args_Map* map);
+static void noop_2(char* used, char* std);
+static void noop_3(char* used, char* std, char* value);
 
 
 /**
@@ -205,11 +207,12 @@ void args_dispose()
 /**
  * Creates, but does not add, a option that takes no arguments
  * 
+ * @param   trigger          Function to invoked when the option is used, with the used option and the standard option
  * @param   standard         The index of the standard alternative name
- * @param   alternatives...  The alterntive names, end with `null`
+ * @param   alternatives...  The alternative names, end with `null`
  * @return                   The created option
  */
-args_Option args_new_argumentless(int standard, char* alternatives, ...)
+args_Option args_new_argumentless(void (*trigger)(char*, char*), int standard, char* alternatives, ...)
 {
   long count = 1;
   args_Option rc;
@@ -226,6 +229,7 @@ args_Option args_new_argumentless(int standard, char* alternatives, ...)
   rc.help = null;
   rc.argument = "NOTHING";
   rc.alternatives_count = count;
+  rc.trigger = trigger == null ? noop_2 : trigger;
   
   rc.alternatives = (char**)malloc(count * sizeof(char*));
   va_start(args, alternatives);
@@ -242,12 +246,13 @@ args_Option args_new_argumentless(int standard, char* alternatives, ...)
 /**
  * Creates, but does not add, a option that takes one argument per use
  * 
+ * @param   trigger          Function to invoked when the option is used, with the used option, the standard option and the used value
  * @param   argument         The new of the argument
  * @param   standard         The index of the standard alternative name
- * @param   alternatives...  The alterntive names, end with `null`
+ * @param   alternatives...  The alternative names, end with `null`
  * @return                   The created option
  */
-args_Option args_new_argumented(char* argument, int standard, char* alternatives, ...)
+args_Option args_new_argumented(void (*trigger)(char*, char*, char*), char* argument, int standard, char* alternatives, ...)
 {
   long count = 1;
   args_Option rc;
@@ -264,6 +269,7 @@ args_Option args_new_argumented(char* argument, int standard, char* alternatives
   rc.help = null;
   rc.argument = argument == null ? "ARG" : argument;
   rc.alternatives_count = count;
+  rc.triggerv = trigger == null ? noop_3 : trigger;
   
   rc.alternatives = (char**)malloc(count * sizeof(char*));
   va_start(args, alternatives);
@@ -280,12 +286,13 @@ args_Option args_new_argumented(char* argument, int standard, char* alternatives
 /**
  * Creates, but does not add, a option that takes all following arguments
  * 
+ * @param   trigger          Function to invoked when the option is used, with the used option and the standard option
  * @param   argument         The new of the argument
  * @param   standard         The index of the standard alternative name
- * @param   alternatives...  The alterntive names, end with `null`
+ * @param   alternatives...  The alternative names, end with `null`
  * @return                   The created option
  */
-args_Option args_new_variadic(char* argument, int standard, char* alternatives, ...)
+args_Option args_new_variadic(void (*trigger)(char*, char*), char* argument, int standard, char* alternatives, ...)
 {
   long count = 1;
   args_Option rc;
@@ -302,6 +309,7 @@ args_Option args_new_variadic(char* argument, int standard, char* alternatives, 
   rc.help = null;
   rc.argument = argument == null ? "ARG" : argument;
   rc.alternatives_count = count;
+  rc.trigger = trigger == null ? noop_2 : trigger;
   
   rc.alternatives = (char**)malloc(count * sizeof(char*));
   va_start(args, alternatives);
@@ -1601,5 +1609,32 @@ static void** map_free(args_Map* map)
     args_map_values = (void**)realloc(args_map_values, (args_map_values_size + 1) * sizeof(void*));
   *(args_map_values + args_map_values_ptr) = null;
   return args_map_values;
+}
+
+
+/**
+ * Dummy trigger
+ * 
+ * @param  used  The used option alternative
+ * @param  std   The standard option alternative
+ */
+static void noop_2(char* used, char* std)
+{
+  (void) used;
+  (void) std;
+}
+
+/**
+ * Dummy trigger
+ * 
+ * @param  used   The used option alternative
+ * @param  std    The standard option alternative
+ * @param  value  The used value
+ */
+static void noop_3(char* used, char* std, char* value)
+{
+  (void) used;
+  (void) std;
+  (void) value;
 }
 

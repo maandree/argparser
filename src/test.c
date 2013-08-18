@@ -43,12 +43,12 @@ int main(int argc, char** argv)
 	    "You should have received a copy of the GNU Affero General Public License\n"
 	    "along with this library.  If not, see <http://www.gnu.org/licenses/>.", 0, 1, 0);
   
-  args_add_option(args_new_argumentless(1, "-h", "-?", "--help", NULL), "Prints this help message\n(and exits)");
-  args_add_option(args_new_argumentless(0, "--hello", NULL), "Prints the text: hello world");
-  args_add_option(args_new_argumentless(0, "++hidden", NULL), 0);
+  args_add_option(args_new_argumentless(NULL, 1, "-h", "-?", "--help", NULL), "Prints this help message\n(and exits)");
+  args_add_option(args_new_argumentless(NULL, 0, "--hello", NULL), "Prints the text: hello world");
+  args_add_option(args_new_argumentless(NULL, 0, "++hidden", NULL), 0);
   
-  args_add_option(args_new_argumented("LINE", 0, "-l", "--line", NULL), "Prints the choosen line");
-  args_add_option(args_new_variadic("LINE", 0, "--l", "--lines", NULL), "Prints the choosen lines");
+  args_add_option(args_new_argumented(NULL, "LINE", 0, "-l", "--line", NULL), "Prints the choosen line");
+  args_add_option(args_new_variadic(NULL, "LINE", 0, "--l", "--lines", NULL), "Prints the choosen lines");
   
   args_parse(argc, argv);
   args_support_alternatives();
