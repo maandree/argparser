@@ -240,6 +240,7 @@ class ArgParser():
                             argqueue.append(arg[arg.index('=') + 1:])
                             if self.optmap[arg_opt][1] == ArgParser.VARIADIC:
                                 dashed = True
+                                self.optmap[arg_opt][2](arg_opt, self.optmap[arg_opt][0])
                             else:
                                 self.optmap[arg_opt][2](arg_opt, self.optmap[arg_opt][0], argqueue[-1])
                         else:
