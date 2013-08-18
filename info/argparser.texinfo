@@ -329,6 +329,11 @@ other values are considered to be false, except an empty string
 (used if obmitted) which is used for automatic, that is,
 true if the output is not piped.
 
+In the C version, @code{1} is considered to be true, @code{0}
+is considered to be false and all other values, including
+if the argument is obmitted (it is an optional argument),
+are used for automatic mode.
+
 
 
 @node GNU Free Documentation License
