@@ -1020,8 +1020,8 @@ void args_help(long use_colours)
   lines = (char**)malloc(copts * sizeof(char*));
   lens = (long*)malloc(copts * sizeof(long));
   {
-    char* first_extra = 0;
-    long i = 0, n, l, j, type;
+    char* first_extra = null;
+    long index = 0, i = 0, n, m, l, j, type;
     for (i = 0; i < copts; i++)
       {
 	char* first;
@@ -1030,7 +1030,6 @@ void args_help(long use_colours)
 	char* arg;
 	if (args_options_get_help(i) == null)
 	  continue;
-	l = 0;
 	arg = args_options_get_argument(i);
 	first = *(args_options_get_alternatives(i));
 	last = *(args_options_get_alternatives(i) + args_options_get_alternatives_count(i) - 1);
@@ -1038,7 +1037,7 @@ void args_help(long use_colours)
 	if (first == last)
 	  {
 	    first = empty;
-	    first_extra = "";
+	    first_extra = null;
 	  }
 	else
 	  {
@@ -1047,14 +1046,14 @@ void args_help(long use_colours)
 	      n++;
 	    first_extra = empty + n;
 	  }
-	n = 0;
+	n = m = 0;
 	while (*(last + n))
 	  n++;
-	if (arg != null)
-	  while (*(arg + n))
-	    n++;
-	l += maxfirstlen + 6 + n;
-	*(lines + count) = line = (char*)malloc((1 + 17 + 16 + maxfirstlen + n) * sizeof(char));
+	if (type != ARGUMENTLESS)
+	  while (*(arg + m))
+	    m++;
+	l = maxfirstlen + 6 + n + m;
+	*(lines + count) = line = (char*)malloc((1 + 17 + 16 + 8 + maxfirstlen + n) * sizeof(char));
 	for (j = 0; *("    \033[02m" + j); j++)
 	  *line++ = *("    \033[02m" + j);
 	for (j = 0; *(first + j); j++)
@@ -1062,8 +1061,14 @@ void args_help(long use_colours)
 	if (first_extra != null)
 	  for (j = 0; *(first_extra + j); j++)
 	    *line++ = *(first_extra + j);
-	for (j = 0; *("\033[22m  \0" + j); j++)
-	  *line++ = *("\033[22m  \0" + j);
+	for (j = 0; *("\033[22m  " + j); j++)
+	  *line++ = *("\033[22m  " + j);
+	if ((index++ & 1) == 0)
+	  for (j = 0; *("\033[36;01m" + j); j++)
+	    *line++ = *("\033[36;01m" + j);
+	else
+	  for (j = 0; *("\033[34;01m" + j); j++)
+	    *line++ = *("\033[34;01m" + j);
 	for (j = 0; *(last + j); j++)
 	  *line++ = *(last + j);
 	if (type == VARIADIC)
@@ -1104,7 +1109,6 @@ void args_help(long use_colours)
     for (i = 0; i < col; i++)
       *(empty + i) = ' ';
     *(empty + col) = 0;
-    i = 0;
     for (i = 0; i < copts; i++)
       {
 	long first = true, j = 0, jptr = 0;
@@ -1116,7 +1120,7 @@ void args_help(long use_colours)
 	char c;
 	if (help == null)
 	  continue;
-	fprintf(args_out, "%s\033[%s;01m", line = *(lines + index), colour);
+	fprintf(args_out, "%s", line = *(lines + index));
 	while (*line++)
 	  ;
 	fprintf(args_out, "%s%s", line, empty + *(lens + index));
