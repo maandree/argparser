@@ -380,25 +380,44 @@ class ArgParser():
         return rc
     
     
-    def help(self):
+    def help(self, use_colours = None):
         '''
-        Prints a colourful help message
+        Prints a help message
+        
+        @param  use_colours:bool?  Whether to use colours, `None` for if not piped
         '''
-        self.__print('\033[01m%s\033[21m %s %s' % (self.program, '-' if self.linuxvt else '—', self.__description))
+        if use_colours is None:
+            use_colours = self.__out.isatty()
+        
+        bold      = lambda text      : ('\033[01m%s\033[21m' if use_colours else '%s') % text
+        dim       = lambda text      : ('\033[02m%s\033[22m' if use_colours else '%s') % text
+        emph      = lambda text      : ('\033[04m%s\033[24m' if use_colours else '%s') % text
+        colourise = lambda text, clr : ('\033[%sm%s\033[00m' % (clr, text)) if use_colours else text
+        
+        self.__print('%s %s %s' % (bold(self.program), '-' if self.linuxvt else '—', self.__description))
         self.__print()
         if self.__longdescription is not None:
-            self.__print(self.__longdescription)
+            desc = self.__longdescription
+            if not use_colours:
+                while '\033' in desc:
+                    esc = desc.find('\033')
+                    desc = desc[:esc] + desc[desc.find('m', esc) + 1:]
+            self.__print(desc)
         self.__print()
         
         if self.__usage is not None:
-            self.__print('\033[01mUSAGE:\033[21m', end='')
+            self.__print(bold('USAGE:'), end='')
             first = True
             for line in self.__usage.split('\n'):
                 if first:
                     first = False
                 else:
                     self.__print('    or', end='')
-                self.__print('\t%s' % (line))
+                if not use_colours:
+                    while '\033' in line:
+                        esc = line.find('\033')
+                        line = line[:esc] + line[line.find('m', esc) + 1:]
+                self.__print('\t%s' % line)
             self.__print()
         
         maxfirstlen = ['']
@@ -413,7 +432,7 @@ class ArgParser():
                 maxfirstlen.append(first)
         maxfirstlen = len(max(maxfirstlen, key = len))
         
-        self.__print('\033[01mSYNOPSIS:\033[21m')
+        self.__print(bold('SYNOPSIS:'))
         (lines, lens) = ([], [])
         for opt in self.__options:
             opt_type = opt[0]
@@ -431,10 +450,10 @@ class ArgParser():
                 if opt_alt is alts[-1]:
                     line += '\0' + opt_alt
                     l += len(opt_alt)
-                    if   opt_type == ArgParser.ARGUMENTED:  line += ' \033[04m%s\033[24m'      % (opt_arg);  l += len(opt_arg) + 1
-                    elif opt_type == ArgParser.VARIADIC:    line += ' [\033[04m%s\033[24m...]' % (opt_arg);  l += len(opt_arg) + 6
+                    if   opt_type == ArgParser.ARGUMENTED:  line += ' %s'      % emph(opt_arg);  l += len(opt_arg) + 1
+                    elif opt_type == ArgParser.VARIADIC:    line += ' [%s...]' % emph(opt_arg);  l += len(opt_arg) + 6
                 else:
-                    line += '    \033[02m%s\033[22m  ' % (opt_alt)
+                    line += '    %s  ' % dim(opt_alt)
                     l += len(opt_alt) + 6
             lines.append(line)
             lens.append(l)
@@ -448,13 +467,13 @@ class ArgParser():
                 continue
             first = True
             colour = '36' if (index & 1) == 0 else '34'
-            self.__print(lines[index].replace('\0', '\033[%s;01m' % (colour)), end=' ' * (col - lens[index]))
+            self.__print(lines[index].replace('\0', ('\033[%s;01m' % colour) if use_colours else ''), end=' ' * (col - lens[index]))
             for line in opt_help.split('\n'):
                 if first:
                     first = False
-                    self.__print('%s' % (line), end='\033[00m\n')
+                    self.__print('%s' % (line), end='\033[00m\n' if use_colours else '\n')
                 else:
-                    self.__print('%s\033[%sm%s\033[00m' % (' ' * col, colour, line))
+                    self.__print('%s%s' % (' ' * col, colourise(line, colour)))
             index += 1
         
         self.__print()

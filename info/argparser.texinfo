@@ -55,6 +55,7 @@ Texts. A copy of the license is included in the section entitled
 * Java version::                    Using the Java version.
 * C version::                       Using the C version.
 * Bash version::                    Using the Bash version.
+* Colours in help message::         Configuring colour use in help message
 * GNU Free Documentation License::  Copying and sharing this manual.
 @end menu
 
@@ -312,6 +313,16 @@ option name and value index checks whether the value with that index
 is null. @code{args_option get} with a option name echos all values,
 one line each, but if any number of indices are also used only those
 values are echoed.
+
+
+
+@node Colours in help message
+@chapter Colours in help message
+
+The help methods, in ArgParser and an optional argument, if use
+you can set, using a true value, to always use colours, or, using
+a false value, to never user colours. Otherwise, colours will
+be used if the output is not piped.
 
 
 
