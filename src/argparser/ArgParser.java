@@ -121,6 +121,7 @@ public class ArgParser
 	this.usage = usage;
 	this.longDescription = longDescription;
 	this.out = useStderr ? System.err : System.out;
+	this.outFile = useStderr ? "/dev/stderr" : "/dev/stdout";
     }
     
     
@@ -154,6 +155,11 @@ public class ArgParser
      * The error output stream
      */
     private final OutputStream out;
+    
+    /**
+     * The error output file
+     */
+    private final String outFile;
     
     /**
      * The passed arguments
@@ -857,20 +863,63 @@ public class ArgParser
     
     
     /**
-     * Prints a colourful help message
+     * Prints a help message
      */
     public void help()
     {
+	boolean useColours = false;
+	try
+	{   final String file = (new File(this.outFile)).getCanonicalPath();
+	    useColours = file.startsWith("/dev/tty") || file.startsWith("/dev/pts/");
+	}
+	catch (final Throwable ignore)
+	{   /* ignore */
+	}
+	help(useColours);
+    }
+    
+    
+    /**
+     * Prints a help message
+     * 
+     * @param  useColours  Whether to print colours, {@code null} is not piped
+     */
+    public void help(final Boolean useColours)
+    {
+	if (useColours == null)
+	    help();
+	else
+	    help(useColours.booleanValue());
+    }
+    
+    
+    /**
+     * Prints a help message
+     * 
+     * @param  useColours  Whether to print colours
+     */
+    public void help(final boolean useColours)
+    {
 	final String dash = this.linuxvt ? "-" : "—";
-	this.println("\033[01m" + program + "\033[21m " + dash + " " + this.description + "\n", false);
+	this.println((useColours ? ("\033[01m" + this.program + "\033[21m ") : (this.program + " ")) + dash + " " + this.description + "\n", false);
 	if (this.longDescription != null)
-	    this.println(longDescription, false);
+	{
+	    String desc = this.longDescription;
+            if (useColours == false)
+		for (int esc; (esc = desc.indexOf('\033')) >= 0;)
+		    desc = desc.substring(0, esc) + desc.substring(desc.indexOf('m', esc) + 1);
+	    this.println(desc, false);
+	}
 	this.println(false);
 	
 	if (this.usage != null)
-	{   this.print("\033[01mUSAGE:\033[21m");
+	{   this.print(useColours ? "\033[01mUSAGE:\033[21m" : "USAGE:");
 	    boolean first = true;
-	    for (final String line : this.usage.split("\n"))
+	    String desc = this.usage;
+            if (useColours == false)
+		for (int esc; (esc = desc.indexOf('\033')) >= 0;)
+		    desc = desc.substring(0, esc) + desc.substring(desc.indexOf('m', esc) + 1);
+	    for (final String line : desc.split("\n"))
 	    {   if (first)
 		    first = false;
 		else
@@ -893,7 +942,7 @@ public class ArgParser
 	    empty += empty;
 	empty = empty.substring(0, maxfirstlen);
 	
-	this.println("\033[01mSYNOPSIS:\033[21m", false);
+	this.println(useColours ? "\033[01mSYNOPSIS:\033[21m" : "SYNOPSIS:", false);
 	final ArrayList<String> lines = new ArrayList<String>();
 	final ArrayList<int[]>  lens  = new ArrayList<int[]>();
 	for (final Option opt : this.options)
@@ -906,14 +955,14 @@ public class ArgParser
 		first = empty;
 	    else
 		first += empty.substring(first.length());
-	    String line = "    \033[02m" + first + "\033[22m  \0" + last;
+	    String line = (useColours ? ("    \033[02m" + first + "\033[22m  \0") : ("    " + first + "  \0")) + last;
 	    l += first.length() + 6 + last.length();
 	    if (opt.getClass() == Variadic.class)
-	    {	line += " [\033[04m" + opt.argument + "\033[24m...]";
+	    {	line += useColours ? (" [\033[04m" + opt.argument + "\033[24m...]") : (" [" + opt.argument + "...]");
 		l += opt.argument.length() + 6;
 	    }
 	    else if (opt.getClass() == Argumented.class)
-	    {	line += " \033[04m" + opt.argument + "\033[24m";
+	    {	line += useColours ? (" \033[04m" + opt.argument + "\033[24m") : (" " + opt.argument);
 		l += opt.argument.length() + 1;
 	    }
 	    lines.add(line);
@@ -936,17 +985,17 @@ public class ArgParser
 		continue;
 	    boolean first = true;
 	    final String colour = (index & 1) == 0 ? "36" : "34";
-	    {   String line = lines.get(index).replace("\0", "\033[" + colour + ";01m");
+	    {   String line = lines.get(index).replace("\0", useColours ? ("\033[" + colour + ";01m") : "");
 		line += empty.substring(lens.get(index)[0]);
 		this.print(line, false);
 	    }
 	    for (final String line : opt.help.split("\n"))
 		if (first)
 		{   first = false;
-		    this.print(line + "\033[00m\n");
+		    this.print(line + (useColours ? "\033[00m\n" : "\n"));
 		}
 		else
-		    this.print(empty + "\033[" + colour + "m" + line + "\033[00m\n");
+		    this.print(empty + (useColours ? ("\033[" + colour + "m" + line + "\033[00m\n") : (line + "\n")));
 	    index++;
 	}
 	

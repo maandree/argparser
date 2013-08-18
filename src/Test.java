@@ -39,7 +39,7 @@ public class Test
 					 "GNU Affero General Public License for more details.\n" +
 					 "\n" +
 					 "You should have received a copy of the GNU Affero General Public License\n" +
-					 "along with this library.  If not, see <http://www.gnu.org/licenses/>.", null, true);
+					 "along with this library.  If not, see <http://www.gnu.org/licenses/>.", null, false);
 	
 	parser.add(new ArgParser.Argumentless(0, "-h", "-?", "--help"), "Prints this help message\n(and exits)");
 	parser.add(new ArgParser.Argumentless(0, "--hello"), "Prints the text: hello world");
