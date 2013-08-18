@@ -170,7 +170,7 @@ long args_files_count;
  * @param  usestderr        Whether to use stderr instead of stdout
  * @param  alternative      Whether to use single dash/plus long options
  */
-extern void args_init(char* description, char* usage, char* longdscription, char* program, long usestderr, long alternative);
+extern void args_init(char* description, char* usage, char* longdescription, char* program, long usestderr, long alternative);
 
 
 /**
@@ -494,8 +494,10 @@ extern void args_support_alternatives(void);
 
 /**
  * Prints a colourful help message
+ * 
+ * @param  [use_colours]  `-1` for no colours, `1` for colours, and `0` for if not piped
  */
-extern void args_help(void);
+extern void args_help();
 
 /**
  * Parse arguments

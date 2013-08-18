@@ -474,7 +474,7 @@ void args_opts_append(char* name, char* value)
   else
     {
       long address = (long)(void*)values;
-      values = realloc(values, size);
+      values = (char**)realloc(values, size);
       *(values + size - 1) = value;
       if ((long)(void*)values != address)
 	args_opts_put(name, values);
@@ -939,14 +939,21 @@ void args_support_alternatives()
 
 /**
  * Prints a colourful help message
+ * 
+ * @param  [use_colours]  `0` for no colours, `1` for colours, and `-1` for if not piped
  */
-void args_help()
+void args_help(long use_colours)
 {
   long maxfirstlen = 0, count = 0, copts = args_get_options_count();
   char* dash = args_linuxvt ? "-" : "—";
   char* empty;
   char** lines;
   long* lens;
+  
+  if ((use_colours != 0) && (use_colours != 1))
+    {
+      use_colours = 1;
+    }
   
   fprintf(args_out, "\033[01m%s\033[21m %s %s\n", args_program, dash, args_description);
   if (args_longdescription != null)
@@ -1005,7 +1012,7 @@ void args_help()
   {
     long i;
     for (i = 0; i < maxfirstlen; i++)
-      *(empty + i++) = ' ';
+      *(empty + i) = ' ';
     *(empty + maxfirstlen) = 0;
   }
   
@@ -1029,7 +1036,10 @@ void args_help()
 	last = *(args_options_get_alternatives(i) + args_options_get_alternatives_count(i) - 1);
 	type = args_options_get_type(i);
 	if (first == last)
-	  first = empty;
+	  {
+	    first = empty;
+	    first_extra = "";
+	  }
 	else
 	  {
 	    n = 0;
@@ -1092,10 +1102,9 @@ void args_help()
     
     empty = (char*)malloc((col + 1) * sizeof(char));
     for (i = 0; i < col; i++)
-      *(empty + i++) = ' ';
+      *(empty + i) = ' ';
     *(empty + col) = 0;
     i = 0;
-    
     for (i = 0; i < copts; i++)
       {
 	long first = true, j = 0, jptr = 0;
@@ -1127,6 +1136,7 @@ void args_help()
 	    }
 	  else
 	    *(buf + j++) = c;
+	*(buf + j) = 0;
 	for (j = 0; j < jptr; j++)
 	  if (first)
 	    {
@@ -1308,11 +1318,7 @@ long args_parse(int argc, char** argv)
 	      }
 	  }
       else
-	{
-	  if (++args_unrecognised_count <= 5)
-	    fprintf(args_out, "%s: warning: unrecognised option %s\n", args_program, arg);
-	  rc = false;
-	}
+	*(args_files + args_files_count++) = arg;
     }
   
   {
@@ -1337,7 +1343,7 @@ long args_parse(int argc, char** argv)
 	  char* std = args_options_get_standard(i);
 	  if (args_opts_contains(std))
 	    {
-	      if (*(args_opts_get(std)) == null)
+	      if (args_opts_get(std) == null)
 		args_opts_clear(std);
 	      for (j = 0; j < args_files_count; j++)
 		args_opts_append(std, *(args_files + j));
@@ -1526,7 +1532,7 @@ static void map_put(args_Map* map, char* key, void* value)
 	at = (void**)*(at + b);
       else
 	{
-	  at = (void**)(*(at + a) = (void*)malloc(17 * sizeof(void*)));
+	  at = (void**)(*(at + b) = (void*)malloc(17 * sizeof(void*)));
 	  for (i = 0; i < 17; i++)
 	    *(at + i) = null;
 	  new = true;
