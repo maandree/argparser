@@ -668,6 +668,21 @@ char* args_optmap_get_standard(char* name)
   return (*(args_options + args_optmap_get_index(name))).standard;
 }
 
+/**
+ * Trigger an option
+ * 
+ * @param  name   The option's alternative name
+ * @param  value  The use value, `null` if argumentless or variadic
+ */
+void args_optmap_trigger(char* name, char* value)
+{
+  args_Option* opt = args_options + args_optmap_get_index(name);
+  if (value == null)
+    opt->trigger(name, opt->standard);
+  else
+    opt->triggerv(name, opt->standard, value);
+}
+
 
 /**
  * Adds an option
@@ -1223,7 +1238,7 @@ long args_parse(int argc, char** argv)
       char* arg = *argv++;
       if ((get > 0) && (dontget == 0))
 	{
-	  get--;
+	  args_optmap_trigger(*(optqueue + optptr - get--), arg);
 	  *(argqueue + argptr++) = arg;
 	}
       else if (tmpdashed)
@@ -1259,6 +1274,7 @@ long args_parse(int argc, char** argv)
 		  {
 		    *(optqueue + optptr++) = arg;
 		    *(argqueue + argptr++) = null;
+		    args_optmap_trigger(arg, null);
 		  }
 		else if (*(arg + eq) == '=')
 		  {
@@ -1273,7 +1289,12 @@ long args_parse(int argc, char** argv)
 			*(argqueue + argptr++) = arg + eq + 1;
 			*(args_freequeue + args_freeptr++) = arg_opt;
 			if (type == VARIADIC)
-			  dashed = true;
+			  {
+			    dashed = true;
+			    args_optmap_trigger(arg_opt, null);
+			  }
+			else
+			  args_optmap_trigger(arg_opt, arg + eq + 1);
 		      }
 		    else
 		      {
@@ -1293,6 +1314,7 @@ long args_parse(int argc, char** argv)
 		    *(optqueue + optptr++) = arg;
 		    *(argqueue + argptr++) = null;
 		    dashed = true;
+		    args_optmap_trigger(arg, null);
 		  }
 	      }
 	  }
@@ -1313,11 +1335,17 @@ long args_parse(int argc, char** argv)
 		    *(args_freequeue + args_freeptr++) = narg;
 		    *(optqueue + optptr++) = narg;
 		    if (type == ARGUMENTLESS)
-		      *(argqueue + argptr++) = null;
+		      {
+			*(argqueue + argptr++) = null;
+			args_optmap_trigger(narg, null);
+		      }
 		    else if (type == ARGUMENTED)
 		      {
 			if (*(arg + i))
-			  *(argqueue + argptr++) = arg + i;
+			  {
+			    *(argqueue + argptr++) = arg + i;
+			    args_optmap_trigger(narg, arg + i);
+			  }
 			else
 			  get++;
 			break;
@@ -1326,6 +1354,7 @@ long args_parse(int argc, char** argv)
 		      {
 			*(argqueue + argptr++) = *(arg + i) ? (arg + i) : null;
 			dashed = true;
+			args_optmap_trigger(narg, null);
 			break;
 		      }
 		  }

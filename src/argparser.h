@@ -297,6 +297,14 @@ extern char* args_options_get_argument(long index);
 extern char* args_options_get_standard(long index);
 
 /**
+ * Trigger an option
+ * 
+ * @param  name   The option's alternative name
+ * @param  value  The use value, `null` if argumentless or variadic
+ */
+void args_optmap_trigger(char* name, char* value);
+
+/**
  * Gets the help text for a option with a specific index
  * 
  * @param   index  The option's index
