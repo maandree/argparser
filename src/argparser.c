@@ -1081,7 +1081,7 @@ void args_help(long use_colours)
 	  while (*(arg + m))
 	    m++;
 	l = maxfirstlen + 6 + n + m;
-	*(lines + count) = line = (char*)malloc((1 + 17 + 16 + 8 + maxfirstlen + n) * sizeof(char));
+	*(lines + count) = line = (char*)malloc((9 + maxfirstlen + 7 + 15 + n + 9 + 6 + m + 5 + 1) * sizeof(char));
 	for (j = 0; *((use_colours ? "    \033[02m" : "    ") + j); j++)
 	  *line++ = *((use_colours ? "    \033[02m" : "    ") + j);
 	for (j = 0; *(first + j); j++)
@@ -1146,7 +1146,7 @@ void args_help(long use_colours)
     *(empty + col) = 0;
     for (i = 0; i < copts; i++)
       {
-	long first = true, j = 0, jptr = 0;
+	long first = true, j = 0, jptr = 1;
 	char* colour = (index & 1) == 0 ? "36" : "34";
 	char* help = args_options_get_help(i);
 	char* line;
@@ -1155,10 +1155,7 @@ void args_help(long use_colours)
 	char c;
 	if (help == null)
 	  continue;
-	fprintf(args_out, "%s", line = *(lines + index));
-	while (*line++)
-	  ;
-	fprintf(args_out, "%s%s", line, empty + *(lens + index));
+	fprintf(args_out, "%s%s", line = *(lines + index), empty + *(lens + index));
 	free(*(lines + index++));
 	while ((c = *(help + j++)))
 	  if (c == '\n')
