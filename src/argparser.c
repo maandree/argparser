@@ -487,7 +487,7 @@ void args_opts_append(char* name, char* value)
   else
     {
       long address = (long)(void*)values;
-      values = (char**)realloc(values, size);
+      values = (char**)realloc(values, size * sizeof(char*));
       *(values + size - 1) = value;
       if ((long)(void*)values != address)
 	args_opts_put(name, values);
