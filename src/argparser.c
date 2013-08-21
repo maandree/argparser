@@ -192,6 +192,8 @@ void args_dispose()
   
   if (args_optmap.keys != null)
     free(map_free(&args_optmap));
+  else
+    free(args_optmap.data);
   
   if (args_opts.keys != null)
     {
@@ -201,6 +203,8 @@ void args_dispose()
 	free(*(freethis + i++));
       free(freethis);
     }
+  else
+    free(args_opts.data);
 }
 
 
