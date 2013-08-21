@@ -803,6 +803,7 @@ char* args_parent_name(long levels)
       else
 	break;
     }
+  fclose(is);
   if (*cmd == 0)
     {
       free(cmd);
