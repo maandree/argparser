@@ -55,6 +55,7 @@ Texts. A copy of the license is included in the section entitled
 * Java version::                    Using the Java version.
 * C version::                       Using the C version.
 * Bash version::                    Using the Bash version.
+* Trigger functions::               Trigger events at the time an option is parsed.
 * Colours in help message::         Configuring colour use in help message
 * GNU Free Documentation License::  Copying and sharing this manual.
 @end menu
@@ -246,11 +247,11 @@ which takes the options followed by a description as its parameters, the
 description can be @code{NULL}.
 To create an options use either @code{args_new_argumentless},
 @code{args_new_argumented} or @code{args_new_variadic}. With the exception
-that @code{args_new_argumentless} does not have the first parameters, these
-methods have three parameters: a descriptive short name of a argument
-associated with the option, the index of the primary alternative, and
-finally a variadic parameter with the alternatives, meaning that each
-alternative is an argument.
+that @code{args_new_argumentless} does not have the second parameters,
+these methods have three parameters: a trigger function pointer a descriptive
+short name of a argument associated with the option, the index of the
+primary alternative, and finally a variadic parameter with the alternatives,
+meaning that each alternative is an argument.
 
 To list all valid options, use the method @code{args_get_opts} which returns
 a string array of all options, and @code{args_get_opts_count} which returns
@@ -294,9 +295,9 @@ maxmimum count.
 To add valid options use the methods @code{args_add_argumentless},
 @code{args_add_argumented} and @code{args_add_variadic}. With the
 except that @code{args_add_argumentless} does not take a name of
-the argument, these methods takes the index of the primary alternative,
-a one word name of the argument, a description (empty for none), and
-then one argument per alternative.
+the argument, these methods takes the name of the trigger function,
+index of the primary alternative, a one word name of the argument,
+a description (empty for none), and then one argument per alternative.
 
 @code{args_argcount} is the number of elements in @code{args_arguments}
 and @code{args_files} does not have any such counterpart.
@@ -313,6 +314,31 @@ option name and value index checks whether the value with that index
 is null. @code{args_option get} with a option name echos all values,
 one line each, but if any number of indices are also used only those
 values are echoed.
+
+
+
+@node Trigger functions
+@chapter Trigger functions
+
+If you do not want to add a trigger function, use an empty string
+instead in the Bash version, and @code{NULL} in the C version.
+In the Python version, the trigger function is the last parameter
+in the functions for creating options, and defaults to @code{None}.
+
+Trigger functions are invoked at the time an option is found an
+can be used to keep track of the order of the options, or to
+add additional options.
+
+The trigger functions are functions that does not return any value,
+and has two or three parameters: the used option alternative, the
+standard option alternative, and for argumented but not variadic
+options: the used value.
+
+The the Java version, the standard option is not passed, so there
+are only one or two parameters. Instead, the function is defined
+by overriding the function @code{trigger} when creating the option,
+and @code{this.standard} can be used to get the standard option
+alternative.
 
 
 
