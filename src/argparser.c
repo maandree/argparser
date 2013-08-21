@@ -775,6 +775,7 @@ char* args_parent_name(long levels)
 	  else if (j < 35)
 	    *(buf + j++) = c;
 	}
+      fclose(is);
       if (found == false)
 	{
 	  free(data);
