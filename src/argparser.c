@@ -196,7 +196,12 @@ void args_dispose()
     void** freethis = map_free(&args_opts);
     long i = 0;
     while (*(freethis + i))
-      free(*(freethis + i++));
+      {
+	args_Array* value = *(freethis + i++);
+	if (value->values != null)
+	  free(value->values);
+	free(value);
+      }
     free(freethis);
   }
 }
