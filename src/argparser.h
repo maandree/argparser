@@ -115,6 +115,11 @@ typedef struct
    */
   long count;
   
+  /**
+   * Whether the item is used, that is, the data exists even if the count is zero
+   */
+  long used;
+  
 } args_Array;
 
 

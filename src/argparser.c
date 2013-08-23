@@ -564,6 +564,7 @@ void args_opts_put(char* name, char** values)
       value = (args_Array*)malloc(sizeof(args_Array));
       value->values = (void**)values;
       map_put(&args_opts, name, value);
+      value->used = false;
     }
   else
     value->values = (void**)values;
@@ -596,7 +597,10 @@ void args_opts_put_count(char* name, long count)
  */
 long args_opts_used(char* name)
 {
-  return args_opts_get_count(name) > 0;
+  args_Array* value = (args_Array*)map_get(&args_opts, name);
+  if (value == null)
+    return false;
+  return value->used;
 }
 
 
@@ -976,8 +980,13 @@ void args_support_alternatives()
     {
       char* alt = *(opts + i);
       char* std = args_optmap_get_standard(alt);
-      args_opts_put(alt, args_opts_get(std));
-      args_opts_put_count(alt, args_opts_get_count(std));
+      args_Array* value_std = (args_Array*)map_get(&args_opts, std);
+      args_Array* value_alt;
+      
+      args_opts_put(alt, (char**)value_std->values);
+      value_alt = (args_Array*)map_get(&args_opts, alt);
+      value_alt->count = value_std->count;
+      value_alt->used = value_std->used;
     }
 }
 
@@ -1404,6 +1413,7 @@ long args_parse(int argc, char** argv)
 	  args_opts_new(opt);
 	if (argptr >= i)
 	  args_opts_append(opt, arg);
+	((args_Array*)map_get(&args_opts, opt))->used = true;
       }
   }
   
