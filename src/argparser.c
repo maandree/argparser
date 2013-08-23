@@ -1329,6 +1329,7 @@ long args_parse(int argc, char** argv)
 	      {
 		dashed = true;
 		*(optqueue + optptr++) = arg;
+		*(argqueue + argptr++) = null;
 		args_optmap_trigger(arg, null);
 	      }
 	    else
@@ -1412,9 +1413,9 @@ long args_parse(int argc, char** argv)
       if (args_options_get_type(i) == VARIADIC)
 	{
 	  char* std = args_options_get_standard(i);
-	  if (args_opts_contains(std))
+	  if (args_opts_used(std))
 	    {
-	      if (args_opts_get(std) == null)
+	      if (*(args_opts_get(std)) == null)
 		args_opts_clear(std);
 	      for (j = 0; j < args_files_count; j++)
 		args_opts_append(std, *(args_files + j));
