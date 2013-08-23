@@ -1163,13 +1163,15 @@ public class ArgParser
 	int i = 0, n = optqueue.size();
 	while (i < n)
 	{
-	    final String opt = this.optmap.get(optqueue.get(i)).standard;
+	    final Option option = this.optmap.get(optqueue.get(i));
+	    final String opt = option.standard;
 	    final String arg = argqueue.size() > i ? argqueue.get(i) : null;
+	    if (len(argqueue) <= i)
+		option.trigger(optqueue.get(i), null);
 	    i++;
 	    if (this.opts.get(opt) == null)
 		this.opts.put(opt, new String[] {});
-	    if (argqueue.size() >= i)
-		this.opts.put(opt, append(this.opts.get(opt), arg));
+	    this.opts.put(opt, append(this.opts.get(opt), arg));
 	}
 	
 	for (final Option opt : this.options)

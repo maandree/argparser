@@ -676,17 +676,20 @@ function args_parse
 	if [ $argnull = 0 ]; then
 	    arg="${argqueue[$i]}"
 	fi
+	std="$(head -n 1 < "${args_optmap}/${opt}")"
+	trigger="$(tail -n 1 < "${args_optmap}/${opt}")"
+	if (( ${#argqueue[@]} <= $i )); then
+	    "$trigger" "${opt}" "${std}"
+	fi
 	(( i++ ))
-	opt="$(head -n 1 < "${args_optmap}/${opt}")"
+	opt="${std}"
 	if [ ! -e "${args_opts}/${opt}" ]; then
 	    mkdir -p "${args_opts}/${opt}"
 	    echo -n > "${args_opts}/${opt}/data"
 	    echo -n > "${args_opts}/${opt}/null"
 	fi
-	if (( ${#argqueue[@]} >= $i )); then
-	    echo "$arg" >> "${args_opts}/${opt}/data"
-	    echo "$argnull" >> "${args_opts}/${opt}/null"
-	fi
+	echo "$arg" >> "${args_opts}/${opt}/data"
+	echo "$argnull" >> "${args_opts}/${opt}/null"
     done
     
     i=0
