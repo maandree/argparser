@@ -32,6 +32,8 @@
 /* Prototype for static functions */
 static void _sort(char** list, long count, char** temp);
 static void sort(char** list, long count);
+static void _sort_ptr(void** list, long count, void** temp);
+static void sort_ptr(void** list, long count);
 static long cmp(char* a, char* b);
 static void map_init(args_Map* map);
 static void* map_get(args_Map* map, char* key);
@@ -194,14 +196,27 @@ void args_dispose()
   
   {
     void** freethis = map_free(&args_opts);
-    long i = 0;
-    while (*(freethis + i))
+    long i = 0, count = 0, last = 0, new, size = 128;
+    void** values = (void**)malloc(size * sizeof(void*));
+    for (; *(freethis + i); i++)
       {
-	args_Array* value = *(freethis + i++);
-	if (value->values != null)
-	  free(value->values);
+	args_Array* value = *(freethis + i);
+	if (count == size)
+	  values = (void**)realloc(values, (size <<= 1) * sizeof(void*));
+	*(values + count++) = value->values;
 	free(value);
       }
+    sort_ptr(values, count);
+    for (i = 0; i < count; i++)
+      {
+	new = (long)(void*)*(values + i);
+	if (new != last)
+	  {
+	    last = new;
+	    free(*(values + i));
+	  }
+      }
+    free(values);
     free(freethis);
   }
 }
@@ -1512,6 +1527,54 @@ static void sort(char** list, long count)
 {
   char** temp = (char**)malloc(count * sizeof(char*));
   _sort(list, count, temp);
+  free(temp);
+}
+
+/**
+ * Naïve merge sort is best merge sort in C
+ * 
+ * @param  list   The list to sort from the point that needs sorting
+ * @param  count  The number of elements to sort
+ * @param  temp   Auxiliary memory
+ */
+static void _sort_ptr(void** list, long count, void** temp)
+{
+  if (count > 1)
+    {
+      long i = 0, a = count >> 1;
+      long j = a, b = count - a;
+      _sort_ptr(list + 0, a, temp + 0);
+      _sort_ptr(list + a, b, temp + a);
+      b += a;
+      while ((i < a) && (j < b))
+	{
+          if (*(temp + i) <= *(temp + j))
+            *list++ = *(temp + i++);
+          else
+            *list++ = *(temp + j++);
+	}
+      while (i < a)
+	*list++ = *(temp + i++);
+      while (j < b)
+	*list++ = *(temp + j++);
+      list -= count;
+      for (i = 0; i < count; i++)
+	*(temp + i) = *(list + i);
+    }
+  else if (count == 1)
+    *temp = *list;
+}
+
+/**
+ * Naïve merge sort is best merge sort in C
+ * 
+ * @param  list   The list to sort
+ * @param  count  The number of elements to sort
+ */
+static void sort_ptr(void** list, long count)
+{
+  void** temp = (void**)malloc(count * sizeof(void*));
+  _sort_ptr(list, count, temp);
   free(temp);
 }
 
