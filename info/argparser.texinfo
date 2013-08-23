@@ -332,7 +332,10 @@ add additional options.
 The trigger functions are functions that does not return any value,
 and has two or three parameters: the used option alternative, the
 standard option alternative, and for argumented but not variadic
-options: the used value.
+options: the used value but @code{null}@footnote{Or @code{NULL} or
+@code{None} depending on language} if there was not argument.
+In the Bash version only two arguments are used if there was not
+argument is the value of @code{$#} will be 2 instead of 3.
 
 The the Java version, the standard option is not passed, so there
 are only one or two parameters. Instead, the function is defined

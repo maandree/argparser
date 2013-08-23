@@ -44,6 +44,7 @@ parser.add_argumentless(['--hello'], 0, 'Prints the text: hello world')
 parser.add_argumentless(['++hidden'], 0)
 
 parser.add_argumented(['-l', '--line'], 0, 'LINE', 'Prints the choosen line')
+parser.add_optargumented(['-L', '--Line'], 0, 'LINE', 'Prints the choosen line')
 parser.add_variadic(['--l', '--lines'], 0, 'LINE', 'Prints the choosen lines')
 
 parser.parse()
@@ -57,6 +58,9 @@ elif parser.unrecognisedCount == 0 and len(parser.arguments) > 0 and len(parser.
             print('Hello World')
     if parser.opts['-l'] is not None:
         for line in parser.opts['--line']:
+            print(line)
+    if parser.opts['-L'] is not None:
+        for line in parser.opts['--Line']:
             print(line)
     if parser.opts['--lines'] is not None:
         for line in parser.opts['--l']:

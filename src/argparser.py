@@ -40,7 +40,12 @@ class ArgParser():
     :int  Option takes one argument per instance
     '''
     
-    VARIADIC = 2
+    OPTARGUMENTED = 2
+    '''
+    :int  Option takes optionally one argument per instance
+    '''
+    
+    VARIADIC = 3
     '''
     :int  Option consumes all following arguments
     '''
@@ -149,17 +154,37 @@ class ArgParser():
         '''
         Add option that takes one argument
         
-        @param  alternatives:list<str>         Option names
-        @param  default:str|int                The default argument's name or index
-        @param  arg:str                        The name of the takes argument, one word
-        @param  help:str?                      Short description, use `None` to hide the option
-        @param  trigger:(str, str, str)?→void  Function to invoke when the option is used, with the used alternative, the standard alternative and the used argument
+        @param  alternatives:list<str>          Option names
+        @param  default:str|int                 The default argument's name or index
+        @param  arg:str                         The name of the takes argument, one word
+        @param  help:str?                       Short description, use `None` to hide the option
+        @param  trigger:(str, str, str?)?→void  Function to invoke when the option is used, with the used alternative, the standard alternative and the used argument and `None` if there are not more arguments
         '''
         stdalt = alternatives[default] if isinstance(default, int) else default
         self.__options.append((ArgParser.ARGUMENTED, alternatives, arg, help, stdalt))
         self.opts[stdalt] = None
         for alt in alternatives:
             self.optmap[alt] = (stdalt, ArgParser.ARGUMENTED, trigger if trigger is not None else lambda used, std, value : True)
+    
+    
+    def add_optargumented(self, alternatives, default = 0, arg = 'ARG', help = None, trigger = None, stickless = None):
+        '''
+        Add option that optionally takes one argument
+        
+        @param  alternatives:list<str>          Option names
+        @param  default:str|int                 The default argument's name or index
+        @param  arg:str                         The name of the takes argument, one word
+        @param  help:str?                       Short description, use `None` to hide the option
+        @param  trigger:(str, str, str?)?→void  Function to invoke when the option is used, with the used alternative, the standard alternative and the used argument if any
+        @parma  stickless:(str)?→bool           Function that should return true if the (feed) next argument can used for the argument without being sticky
+        '''
+        stdalt = alternatives[default] if isinstance(default, int) else default
+        self.__options.append((ArgParser.OPTARGUMENTED, alternatives, arg, help, stdalt))
+        self.opts[stdalt] = None
+        for alt in alternatives:
+            trigger = trigger if trigger is not None else lambda used, std, value : True
+            stickless = stickless if stickless is not None else lambda arg : not (arg.startswith('-') or arg.startswith('+'))
+            self.optmap[alt] = (stdalt, ArgParser.OPTARGUMENTED, trigger, stickless)
     
     
     def add_variadic(self, alternatives, default = 0, arg = 'ARG', help = None, trigger = None):
@@ -216,10 +241,19 @@ class ArgParser():
             queue = queue[1:]
             if (get > 0) and (dontget == 0):
                 arg_opt = optqueue[-get]
-                self.optmap[arg_opt][2](arg_opt, self.optmap[arg_opt][0], arg)
+                option = self.optmap[arg_opt]
+                passed = True
                 get -= 1
-                argqueue.append(arg)
-            elif tmpdashed:
+                if option[1] == ArgParser.OPTARGUMENTED:
+                    if not option[3](arg):
+                        passed = False
+                        option[2](arg_opt, option[0], None)
+                        argqueue.append(None)
+                if passed:
+                    option[2](arg_opt, option[0], arg)
+                    argqueue.append(arg)
+                    continue
+            if tmpdashed:
                 self.files.append(arg)
                 tmpdashed = False
             elif dashed:        self.files.append(arg)
@@ -245,7 +279,7 @@ class ArgParser():
                                 self.optmap[arg_opt][2](arg_opt, self.optmap[arg_opt][0], argqueue[-1])
                         else:
                             unrecognised(arg)
-                    elif (arg in self.optmap) and (self.optmap[arg][1] == ArgParser.ARGUMENTED):
+                    elif (arg in self.optmap) and (self.optmap[arg][1] <= ArgParser.OPTARGUMENTED):
                         optqueue.append(arg)
                         get += 1
                     elif (arg in self.optmap) and (self.optmap[arg][1] == ArgParser.VARIADIC):
@@ -267,7 +301,7 @@ class ArgParser():
                                 self.optmap[narg][2](narg, self.optmap[narg][0])
                                 optqueue.append(narg)
                                 argqueue.append(None)
-                            elif self.optmap[narg][1] == ArgParser.ARGUMENTED:
+                            elif self.optmap[narg][1] < ArgParser.VARIADIC:
                                 optqueue.append(narg)
                                 nargarg = arg[i:]
                                 if len(nargarg) == 0:
@@ -293,12 +327,14 @@ class ArgParser():
         while i < n:
             opt = optqueue[i]
             arg = argqueue[i] if len(argqueue) > i else None
+            if len(argqueue) <= i:
+                option = self.optmap[opt]
+                option[2](opt, option[0], None)
             i += 1
             opt = self.optmap[opt][0]
             if (opt not in self.opts) or (self.opts[opt] is None):
                 self.opts[opt] = []
-            if len(argqueue) >= i:
-                self.opts[opt].append(arg)
+            self.opts[opt].append(arg)
         
         for arg in self.__options:
             if arg[0] == ArgParser.VARIADIC:
@@ -463,8 +499,9 @@ class ArgParser():
                 if opt_alt is alts[-1]:
                     line += '\0' + opt_alt
                     l += len(opt_alt)
-                    if   opt_type == ArgParser.ARGUMENTED:  line += ' %s'      % emph(opt_arg);  l += len(opt_arg) + 1
-                    elif opt_type == ArgParser.VARIADIC:    line += ' [%s...]' % emph(opt_arg);  l += len(opt_arg) + 6
+                    if   opt_type == ArgParser.ARGUMENTED:     line += ' %s'      % emph(opt_arg);  l += len(opt_arg) + 1
+                    elif opt_type == ArgParser.OPTARGUMENTED:  line += ' [%s]'    % emph(opt_arg);  l += len(opt_arg) + 3
+                    elif opt_type == ArgParser.VARIADIC:       line += ' [%s...]' % emph(opt_arg);  l += len(opt_arg) + 6
                 else:
                     line += '    %s  ' % dim(opt_alt)
                     l += len(opt_alt) + 6
