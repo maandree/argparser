@@ -959,9 +959,10 @@ void args_support_alternatives()
   
   for (i = 0; i < n; i++)
     {
-      char* std = args_optmap_get_standard(*opts);
-      args_opts_put(*(opts + 1), args_opts_get(std));
-      args_opts_put_count(*(opts + 1), args_opts_get_count(std));
+      char* alt = *(opts + i);
+      char* std = args_optmap_get_standard(alt);
+      args_opts_put(alt, args_opts_get(std));
+      args_opts_put_count(alt, args_opts_get_count(std));
     }
 }
 
@@ -1257,67 +1258,69 @@ long args_parse(int argc, char** argv)
       else if (((*arg == '-') || (*arg == '+')) && (*(arg + 1) != 0))
 	if (args_alternative || (*arg == *(arg + 1)))
 	  {
+	    long eq = 0, type = -1;
+	    if (dontget <= 0)
+	      {
+		if (args_optmap_contains(arg))
+		  type = args_optmap_get_type(arg);
+		if (type != ARGUMENTLESS)
+		  while (*(arg + eq) && (*(arg + eq) != '='))
+		    eq++;
+	      }
+	    
 	    if (dontget > 0)
 	      dontget--;
-	    else if (args_optmap_contains(arg) == false)
+	    else if (type == ARGUMENTLESS)
+	      {
+		*(optqueue + optptr++) = arg;
+		*(argqueue + argptr++) = null;
+		args_optmap_trigger(arg, null);
+	      }
+	    else if (*(arg + eq) == '=')
+	      {
+		char* arg_opt = (char*)malloc((eq + 1) * sizeof(char));
+		long i;
+		for (i = 0; i < eq; i++)
+		  *(arg_opt + i) = *(arg + i);
+		*(arg_opt + eq) = 0;
+
+		if (args_optmap_contains(arg_opt) && ((type = args_optmap_get_type(arg_opt)) >= ARGUMENTED))
+		  {
+		    *(optqueue + optptr++) = arg_opt;
+		    *(argqueue + argptr++) = arg + eq + 1;
+		    *(args_freequeue + args_freeptr++) = arg_opt;
+		    if (type == VARIADIC)
+		      {
+			dashed = true;
+			args_optmap_trigger(arg_opt, null);
+		      }
+		    else
+		      args_optmap_trigger(arg_opt, arg + eq + 1);
+		  }
+		else
+		  {
+		    if (++args_unrecognised_count <= 5)
+		      fprintf(args_out, "%s: warning: unrecognised option %s\n", args_program, arg);
+		    rc = false;
+		    free(arg_opt);
+		  }
+	      }
+	    else if (type == ARGUMENTED)
+	      {
+		*(optqueue + optptr++) = arg;
+		get++;
+	      }
+	    else if (type == VARIADIC)
+	      {
+		dashed = true;
+		*(optqueue + optptr++) = arg;
+		args_optmap_trigger(arg, null);
+	      }
+	    else
 	      {
 		if (++args_unrecognised_count <= 5)
 		  fprintf(args_out, "%s: warning: unrecognised option %s\n", args_program, arg);
 		rc = false;
-	      }
-	    else
-	      {
-		long type = args_optmap_get_type(arg);
-		long eq = 0;
-		if (type != ARGUMENTLESS)
-		  while (*(arg + eq) && (*(arg + eq) != '='))
-		    eq++;
-		if (type == ARGUMENTLESS)
-		  {
-		    *(optqueue + optptr++) = arg;
-		    *(argqueue + argptr++) = null;
-		    args_optmap_trigger(arg, null);
-		  }
-		else if (*(arg + eq) == '=')
-		  {
-		    char* arg_opt = (char*)malloc((eq + 1) * sizeof(char));
-		    long i;
-		    for (i = 0; i < eq; i++)
-		      *(arg_opt + i) = *(arg + i);
-		    *(arg_opt + eq) = 0;
-		    if (args_optmap_contains(arg_opt) && ((type = args_optmap_get_type(arg_opt)) >= ARGUMENTED))
-		      {
-			*(optqueue + optptr++) = arg_opt;
-			*(argqueue + argptr++) = arg + eq + 1;
-			*(args_freequeue + args_freeptr++) = arg_opt;
-			if (type == VARIADIC)
-			  {
-			    dashed = true;
-			    args_optmap_trigger(arg_opt, null);
-			  }
-			else
-			  args_optmap_trigger(arg_opt, arg + eq + 1);
-		      }
-		    else
-		      {
-			if (++args_unrecognised_count <= 5)
-			  fprintf(args_out, "%s: warning: unrecognised option %s\n", args_program, arg);
-			rc = false;
-			free(arg_opt);
-		      }
-		  }
-		else if (type == ARGUMENTED)
-		  {
-		    *(optqueue + optptr++) = arg;
-		    get++;
-		  }
-		else
-		  {
-		    *(optqueue + optptr++) = arg;
-		    *(argqueue + argptr++) = null;
-		    dashed = true;
-		    args_optmap_trigger(arg, null);
-		  }
 	      }
 	  }
 	else
@@ -1354,7 +1357,8 @@ long args_parse(int argc, char** argv)
 		      }
 		    else
 		      {
-			*(argqueue + argptr++) = *(arg + i) ? (arg + i) : null;
+			if (*(arg + i))
+			  *(argqueue + argptr++) = arg + i;
 			dashed = true;
 			args_optmap_trigger(narg, null);
 			break;
@@ -1378,7 +1382,7 @@ long args_parse(int argc, char** argv)
     while (i < optptr)
       {
 	char* opt = args_optmap_get_standard(*(optqueue + i));
-	char* arg = argptr > i ? *(optqueue + i) : null;
+	char* arg = argptr > i ? *(argqueue + i) : null;
 	i++;
 	if ((args_optmap_contains(opt) == false) || (args_opts_contains(opt) == false))
 	  args_opts_new(opt);
@@ -1564,6 +1568,7 @@ static void* map_get(args_Map* map, char* key)
  */
 static void map_put(args_Map* map, char* key, void* value)
 {
+  char* _key = key;
   long new = false;
   void** at = map->data;
   long i;
@@ -1593,7 +1598,10 @@ static void map_put(args_Map* map, char* key, void* value)
     }
   *(at + 16) = value;
   if (new)
-    map->keys = (char**)realloc(map->keys, (map->key_count + 1) * sizeof(char*));
+    {
+      map->keys = (char**)realloc(map->keys, (map->key_count + 1) * sizeof(char*));
+      *(map->keys + map->key_count++) = _key;
+    }
 }
 
 /**

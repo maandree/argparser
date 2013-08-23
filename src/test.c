@@ -75,7 +75,7 @@ int main(int argc, char** argv)
 	  i = 0;
 	  arr = args_opts_get("--l");
 	  for (n = args_opts_get_count("--l"); i < n; i++)
-	    printf("%s\n", *(arr + i));
+	    printf("%s\n", *(arr + i) == NULL ? "(null)" : *(arr + i));
 	  if (n == 0)
 	    printf("--l(--lines) is used without and arguments\n");
 	}
