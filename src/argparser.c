@@ -190,21 +190,15 @@ void args_dispose()
       args_freequeue = null;
     }
   
-  if (args_optmap.keys != null)
-    free(map_free(&args_optmap));
-  else
-    free(args_optmap.data);
+  free(map_free(&args_optmap));
   
-  if (args_opts.keys != null)
-    {
-      void** freethis = map_free(&args_opts);
-      long i = 0;
-      while (*(freethis + i))
-	free(*(freethis + i++));
-      free(freethis);
-    }
-  else
-    free(args_opts.data);
+  {
+    void** freethis = map_free(&args_opts);
+    long i = 0;
+    while (*(freethis + i))
+      free(*(freethis + i++));
+    free(freethis);
+  }
 }
 
 
