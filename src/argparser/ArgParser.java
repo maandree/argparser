@@ -397,6 +397,111 @@ public class ArgParser
     
     
     /**
+     * Option optionally takes one argument per instance
+     */
+    public static class Optargumented extends Argumented
+    {
+	/**
+	 * Constructor
+	 * 
+	 * @param  alternatives  Alterative option names
+	 * @param  standard      Standard option index
+	 * @param  argument      Argument name
+	 */
+	public Optargumented(final String[] alternatives, final int standard, final String argument)
+	{   super(alternatives, standard, argument);
+	}
+	
+	/**
+	 * Constructor
+	 * 
+	 * @param  alternatives  Alterative option names
+	 * @param  argument      Argument name
+	 * @param  standard      Standard option index
+	 */
+	public Optargumented(final String[] alternatives, final String argument, final int standard)
+	{   super(alternatives, argument, standard);
+	}
+	
+	/**
+	 * Constructor
+	 * 
+	 * @param  argument      Argument name
+	 * @param  alternatives  Alterative option names
+	 * @param  standard      Standard option index
+	 */
+	public Optargumented(final String argument, final String[] alternatives, final int standard)
+	{   super(alternatives, argument, standard);
+	}
+	
+	/**
+	 * Constructor
+	 * 
+	 * @param  standard      Standard option index
+	 * @param  alternatives  Alterative option names
+	 * @param  argument      Argument name
+	 */
+	public Optargumented(final int standard, final String[] alternatives, final String argument)
+	{   super(standard, argument, alternatives);
+	}
+	
+	/**
+	 * Constructor
+	 * 
+	 * @param  standard      Standard option index
+	 * @param  argument      Argument name
+	 * @param  alternatives  Alterative option names
+	 */
+	public Optargumented(final int standard, final String argument, final String... alternatives)
+	{   super(standard, argument, alternatives);
+	}
+	
+	/**
+	 * Constructor
+	 * 
+	 * @param  argument      Argument name
+	 * @param  standard      Standard option index
+	 * @param  alternatives  Alterative option names
+	 */
+	public Optargumented(final String argument, final int standard, final String... alternatives)
+	{   super(argument, standard, alternatives);
+	}
+	
+	/**
+	 * Constructor
+	 * 
+	 * @param  alternatives  Alterative option names
+	 * @param  argument      Argument name
+	 */
+	public Optargumented(final String[] alternatives, final String argument)
+	{   super(alternatives, argument);
+	}
+	
+	/**
+	 * Constructor
+	 * 
+	 * @param  argument      Argument name
+	 * @param  alternatives  Alterative option names
+	 */
+	public Optargumented(final String argument, final String... alternatives)
+	{   super(argument, alternatives);
+	}
+	
+	
+	
+	/**
+	 * Should return true if the next argument can used for the argument without being sticky
+	 * 
+	 * @param   argument  The next argument
+	 * @return            Whether the argument can be used without being sticky
+	 */
+	public boolean stickless(final String argument)
+	{   return (argument.startswith("-") || argument.startswith("+")) == false;
+	}
+    }
+    
+    
+    /**
      * Option consumes all following arguments
      */
     public static class Variadic extends Argumented
@@ -986,6 +1091,10 @@ public class ArgParser
 	    {	line += useColours ? (" [\033[04m" + opt.argument + "\033[24m...]") : (" [" + opt.argument + "...]");
 		l += opt.argument.length() + 6;
 	    }
+	    else if (opt.getClass() == Optargumented.class)
+	    {	line += useColours ? (" \033[04m" + opt.argument + "\033[24m") : (" [" + opt.argument + "]");
+		l += opt.argument.length() + 3;
+	    }
 	    else if (opt.getClass() == Argumented.class)
 	    {	line += useColours ? (" \033[04m" + opt.argument + "\033[24m") : (" " + opt.argument);
 		l += opt.argument.length() + 1;
@@ -1064,11 +1173,22 @@ public class ArgParser
 	{   final String arg = queue.remove(0);
 	    if ((get > 0) && (dontget == 0))
 	    {   String arg_opt = optqueue.get(optqueue.size() - get);
-		((Argumented)(this.optmap.get(arg_opt))).trigger(arg_opt, arg);
+		Argumented option = (Argumented)(this.optmap.get(arg_opt));
+		boolean passed = true;
 		get--;
-		argqueue.add(arg);
+		if (option.getClass() == Optargumented.class)
+		    if (((Optargumented)option).stickless(arg) == false)
+		    {	passed = false;
+			option.trigger(arg_opt, null);
+			argqueue.add(null);
+		    }
+		if (passed)
+		{   option.trigger(arg_opt, arg);
+		    argqueue.add(arg);
+		    continue;
+		}
 	    }
-	    else if (tmpdashed)
+	    if (tmpdashed)
 	    {	this.files.add(arg);
 		tmpdashed = false;
 	    }
@@ -1104,15 +1224,15 @@ public class ArgParser
 			    rc = false;
 			}
 		    }
-		    else if ((opt != null) && (opt.getClass() == Argumented.class))
-		    {	optqueue.add(arg);
-			get++;
-		    }
 		    else if ((opt != null) && (opt.getClass() == Variadic.class))
 		    {	optqueue.add(arg);
 			argqueue.add(null);
 			dashed = true;
 			opt.trigger(arg);
+		    }
+		    else if ((opt != null) && (opt instanceof Argumented))
+		    {	optqueue.add(arg);
+			get++;
 		    }
 		    else
 		    {   if (++this.unrecognisedCount <= 5)
@@ -1131,7 +1251,15 @@ public class ArgParser
 				argqueue.add(null);
 				opt.trigger(narg);
 			    }
-			    else if (opt.getClass() == Argumented.class)
+			    else if (opt.getClass() == Variadic.class)
+			    {	optqueue.add(narg);
+				String nargarg = arg.substring(i);
+				argqueue.add(nargarg.length() > 0 ? nargarg : null);
+				opt.trigger(narg);
+				dashed = true;
+				break;
+			    }
+			    else
 			    {	optqueue.add(narg);
 				String nargarg = arg.substring(i);
 				if (nargarg.length() == 0)
@@ -1140,14 +1268,6 @@ public class ArgParser
 				{   argqueue.add(nargarg);
 				    ((Argumented)opt).trigger(narg, nargarg);
 				}
-				break;
-			    }
-			    else
-			    {	optqueue.add(narg);
-				String nargarg = arg.substring(i);
-				argqueue.add(nargarg.length() > 0 ? nargarg : null);
-				opt.trigger(narg);
-				dashed = true;
 				break;
 			    }
 			else
