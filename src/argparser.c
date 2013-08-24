@@ -25,9 +25,10 @@
 #define null  0
 
 /* Constants */
-#define ARGUMENTLESS 0
-#define ARGUMENTED   1
-#define VARIADIC     2
+#define ARGUMENTLESS  0
+#define ARGUMENTED    1
+#define OPTARGUMENTED 2
+#define VARIADIC      3
 
 /* Prototype for static functions */
 static void _sort(char** list, long count, char** temp);
@@ -42,6 +43,7 @@ static void _map_free(void** level, long level_size);
 static void** map_free(args_Map* map);
 static void noop_2(char* used, char* std);
 static void noop_3(char* used, char* std, char* value);
+static long default_stickless(char* argument);
 
 
 /**
@@ -225,7 +227,7 @@ void args_dispose()
 /**
  * Creates, but does not add, a option that takes no arguments
  * 
- * @param   trigger          Function to invoked when the option is used, with the used option and the standard option
+ * @param   trigger          Function to invoke when the option is used, with the used option and the standard option
  * @param   standard         The index of the standard alternative name
  * @param   alternatives...  The alternative names, end with `null`
  * @return                   The created option
@@ -264,7 +266,7 @@ args_Option args_new_argumentless(void (*trigger)(char*, char*), int standard, c
 /**
  * Creates, but does not add, a option that takes one argument per use
  * 
- * @param   trigger          Function to invoked when the option is used, with the used option, the standard option and the used value
+ * @param   trigger          Function to invoke when the option is used, with the used option, the standard option and the used value
  * @param   argument         The new of the argument
  * @param   standard         The index of the standard alternative name
  * @param   alternatives...  The alternative names, end with `null`
@@ -302,9 +304,51 @@ args_Option args_new_argumented(void (*trigger)(char*, char*, char*), char* argu
 }
 
 /**
+ * Creates, but does not add, a option that optionally takes one argument per use
+ * 
+ * @param   stickless        Should return true if the (feed) next argument can used for the argument without being sticky
+ * @param   trigger          Function to invoke when the option is used, with the used option, the standard option and the used value
+ * @param   argument         The new of the argument
+ * @param   standard         The index of the standard alternative name
+ * @param   alternatives...  The alternative names, end with `null`
+ * @return                   The created option
+ */
+args_Option args_new_optargumented(long (*stickless)(char*), void (*trigger)(char*, char*, char*), char* argument, int standard, char* alternatives, ...)
+{
+  long count = 1;
+  args_Option rc;
+  va_list args, cp;
+  long i;
+  
+  va_copy(cp, args); /* va_copy(dest, src) */
+  va_start(cp, alternatives);
+  while (va_arg(cp, char*) != null)
+    count++;
+  va_end(cp);
+  
+  rc.type = OPTARGUMENTED;
+  rc.help = null;
+  rc.argument = argument == null ? "ARG" : argument;
+  rc.alternatives_count = count;
+  rc.triggerv = trigger == null ? noop_3 : trigger;
+  rc.stickless = stickless == null ? default_stickless : stickless;
+  
+  rc.alternatives = (char**)malloc(count * sizeof(char*));
+  va_start(args, alternatives);
+  *(rc.alternatives) = alternatives;
+  for (i = 1; i < count; i++)
+    *(rc.alternatives + i) = va_arg(args, char*);
+  va_end(args);
+  if (standard < 0)
+    standard += rc.alternatives_count;
+  rc.standard = *(rc.alternatives + standard);
+  return rc;
+}
+
+/**
  * Creates, but does not add, a option that takes all following arguments
  * 
- * @param   trigger          Function to invoked when the option is used, with the used option and the standard option
+ * @param   trigger          Function to invoke when the option is used, with the used option and the standard option
  * @param   argument         The new of the argument
  * @param   standard         The index of the standard alternative name
  * @param   alternatives...  The alternative names, end with `null`
@@ -703,6 +747,17 @@ void args_optmap_trigger(char* name, char* value)
     opt->trigger(name, opt->standard);
   else
     opt->triggerv(name, opt->standard, value);
+}
+
+/**
+ * Evaluate if an argument can be used without being sticky for an optionally argument option
+ * 
+ * @param  name      The option's alternative name
+ * @param  argument  The argument
+ */
+long args_optmap_stickless(char* name, char* argument)
+{
+  return (args_options + args_optmap_get_index(name))->stickless(argument);
 }
 
 
@@ -1136,6 +1191,16 @@ void args_help(long use_colours)
 	      *line++ = *((use_colours ? "\033[24m...]" : "...]") + j);
 	    l += 6;
 	  }
+	else if (type == OPTARGUMENTED)
+	  {
+	    for (j = 0; *((use_colours ? " [\033[04m" : " [") + j); j++)
+	      *line++ = *((use_colours ? " [\033[04m" : " [") + j);
+	    for (j = 0; *(arg + j); j++)
+	      *line++ = *(arg + j);
+	    for (j = 0; *((use_colours ? "\033[24m]" : "]") + j); j++)
+	      *line++ = *((use_colours ? "\033[24m]" : "]") + j);
+	    l += 3;
+	  }
 	else if (type == ARGUMENTED)
 	  {
 	    if (use_colours)
@@ -1265,10 +1330,23 @@ long args_parse(int argc, char** argv)
       char* arg = *argv++;
       if ((get > 0) && (dontget == 0))
 	{
-	  args_optmap_trigger(*(optqueue + optptr - get--), arg);
-	  *(argqueue + argptr++) = arg;
+	  char* arg_opt = *(optqueue + optptr - get--);
+	  long passed = true;
+	  if (args_optmap_get_type(arg_opt) == OPTARGUMENTED)
+	    if (args_optmap_stickless(arg_opt, arg))
+	      {
+		passed = false;
+		args_optmap_trigger(arg_opt, null);
+		*(argqueue + argptr++) = null;
+	      }
+	  if (passed)
+	    {
+	      args_optmap_trigger(arg_opt, arg);
+	      *(argqueue + argptr++) = arg;
+	      continue;
+	    }
 	}
-      else if (tmpdashed)
+      if (tmpdashed)
 	{
 	  *(args_files + args_files_count++) = arg;
 	  tmpdashed = 0;
@@ -1329,7 +1407,7 @@ long args_parse(int argc, char** argv)
 		    free(arg_opt);
 		  }
 	      }
-	    else if (type == ARGUMENTED)
+	    else if (type <= OPTARGUMENTED)
 	      {
 		*(optqueue + optptr++) = arg;
 		get++;
@@ -1369,7 +1447,7 @@ long args_parse(int argc, char** argv)
 			*(argqueue + argptr++) = null;
 			args_optmap_trigger(narg, null);
 		      }
-		    else if (type == ARGUMENTED)
+		    else if (type < VARIADIC)
 		      {
 			if (*(arg + i))
 			  {
@@ -1750,5 +1828,16 @@ static void noop_3(char* used, char* std, char* value)
   (void) used;
   (void) std;
   (void) value;
+}
+
+/**
+ * Default stickless evaluator
+ * 
+ * @param   The argument
+ * @return  Whether the argument can be used without being sticky
+ */
+static long default_stickless(char* argument)
+{
+  return (*argument != '-') && (*argument != '+');
 }
 

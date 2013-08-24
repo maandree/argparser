@@ -74,6 +74,14 @@ typedef struct
    */
   void (*triggerv)(char*, char*, char*);
   
+  /**
+   * Should return true if the next argument can used for the argument without being sticky
+   * 
+   * @param   argument  The next argument
+   * @return            Whether the argument can be used without being sticky
+   */
+  long (*stickless)(char*);
+    
 } args_Option;
 
 
@@ -308,6 +316,14 @@ extern char* args_options_get_standard(long index);
  * @param  value  The use value, `null` if argumentless or variadic
  */
 void args_optmap_trigger(char* name, char* value);
+
+/**
+ * Evaluate if an argument can be used without being sticky for an optionally argument option
+ * 
+ * @param  name      The option's alternative name
+ * @param  argument  The argument
+ */
+long args_optmap_stickless(char* name, char* argument);
 
 /**
  * Gets the help text for a option with a specific index
