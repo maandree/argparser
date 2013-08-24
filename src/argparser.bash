@@ -31,8 +31,11 @@ args_ARGUMENTLESS=0
 # :int  Option takes one argument per instance
 args_ARGUMENTED=1
 
+# :int  Option optinally takes one argument per instance
+args_OPTARGUMENTED=2
+
 # :int  Option consumes all following arguments
-args_VARIADIC=2
+args_VARIADIC=3
 
 
 
@@ -277,9 +280,20 @@ function args_noop
 }
 
 
+# Default stickless evaluator function
+function args_stickless
+{
+    if [ "${1::1}" = '-' ] || [ "${1::1}" = '+' ]; then
+	return 0
+    else
+	return 1
+    fi
+}
+
+
 # Add option that takes no arguments
 # 
-# @param  $1:str?    Trigger to invoken when to option is used, with the used option and the standard option
+# @param  $1:str?    Trigger to invoke when to option is used, with the used option and the standard option
 # @param  $2:int     The default argument's index
 # @param  $3:str     Short description, use empty to hide the option
 # @param  ...:(str)  Option names
@@ -304,7 +318,7 @@ function args_add_argumentless
 
 # Add option that takes one argument
 # 
-# @param  $1:str?    Trigger to invoken when to option is used, with the used option, the standard option and the used value
+# @param  $1:str?    Trigger to invoke when to option is used, with the used option, the standard option and the used value
 # @param  $2:int     The default argument's index
 # @param  $3:str     The name of the takes argument, one word
 # @param  $4:str     Short description, use empty to hide the option
@@ -331,9 +345,43 @@ function args_add_argumented
 }
 
 
+# Add option that optionally takes one argument
+# 
+# @param  $1:str?    Function that should return true if the (feed) next argument can used for the argument without being sticky
+# @param  $2:str?    Trigger to invoke when to option is used, with the used option, the standard option and the used value
+# @param  $3:int     The default argument's index
+# @param  $4:str     The name of the takes argument, one word
+# @param  $5:str     Short description, use empty to hide the option
+# @param  ...:(str)  Option names
+function args_add_optargumented
+{
+    local stickless="$1" trigger="$2" default="$3" arg="$4" help="$5" std alts alt
+    shift 5
+    if [ "${arg}" = "" ]; then
+	arg="ARG"
+    fi
+    if [ "${trigger}" = "" ]; then
+	trigger=args_noop
+    fi
+    if [ "${stickless}" = "" ]; then
+	stickless=args_stickless
+    fi
+    alts=( "$@" )
+    std="${alts[$default]}"
+    args_options+=( ${args_OPTARGUMENTED} "${arg}" "${help}" ${#args_opts_alts[@]} $# "${std}" )
+    args_opts_alts+=( "$@" )
+    for alt in "${alts[@]}"; do
+	echo "$std" > "${args_optmap}/${alt}"
+	echo ${args_OPTARGUMENTED} >> "${args_optmap}/${alt}"
+	echo "$stickless" >> "${args_optmap}/${alt}"
+	echo "$trigger" >> "${args_optmap}/${alt}"
+    done
+}
+
+
 # Add option that takes all following arguments
 # 
-# @param  $1:str?    Trigger to invoken when to option is used, with the used option and the standard option
+# @param  $1:str?    Trigger to invoke when to option is used, with the used option and the standard option
 # @param  $2:int     The default argument's index
 # @param  $3:str     The name of the takes argument, one word
 # @param  $4:str     Short description, use empty to hide the option
@@ -472,6 +520,9 @@ function args_help
 	if [ $type = ${args_ARGUMENTED} ]; then
 	    line+="$(echo -en " ")$(args__emph "${arg}")"
 	    l=$(( $l + ${#arg} + 1 ))
+	elif [ $type = ${args_OPTARGUMENTED} ]; then
+	    line+="$(echo -en " [")$(args__emph "${arg}")$(echo -en "]")"
+	    l=$(( $l + ${#arg} + 3 ))
 	elif [ $type = ${args_VARIADIC} ]; then
 	    line+="$(echo -en " [")$(args__emph "${arg}")$(echo -en "...]")"
 	    l=$(( $l + ${#arg} + 6 ))
@@ -536,7 +587,7 @@ function args_help
 function args_parse
 {
     local nulqueue=() argqueue=() optqueue=() queue=() opt arg _arg argnull trigger
-    local dashed=0 tmpdashed=0 get=0 dontget=0 rc=0 i n more std sign type opt_arg
+    local dashed=0 tmpdashed=0 get=0 dontget=0 rc=0 i n more std sign type opt_arg passed
     
     args_argcount=$#
     args_unrecognised_count=0
@@ -550,12 +601,26 @@ function args_parse
 	    if [ ! $get = 0 ] && [ $dontget = 0 ]; then
 		opt_arg="${optqueue[${#optqueue[@]} - ${get}]}"
 		std="$(head -n 1 < "${args_optmap}/${opt_arg}")"
+		type="$(head -n 2 < "${args_optmap}/${opt_arg}" | tail -n 1)"
+		stickless="$(head -n 3 < "${args_optmap}/${opt_arg}" | tail -n 1)"
 		trigger="$(tail -n 1 < "${args_optmap}/${opt_arg}")"
-		"$trigger" "${opt_arg}" "${std}" "${arg}"
+		passed=1
 		(( get-- ))
-		argqueue+=( "$arg" )
-		nulqueue+=( 0 )
-	    elif [ $tmpdashed = 1 ]; then
+		if [ $type = ${args_OPTARGUMENTED} ]; then
+		    if ! "$stickless" "${arg}"; then
+			passed=0
+			"$trigger" "${opt_arg}" "${std}"
+			argqueue+=( '' )
+			nulqueue+=( 1 )
+		    fi
+		fi
+		if [ $passed = 1 ]; then
+		    "$trigger" "${opt_arg}" "${std}" "${arg}"
+		    argqueue+=( "$arg" )
+		    nulqueue+=( 0 )
+		    continue
+		fi
+	    if [ $tmpdashed = 1 ]; then
 		args_files+=( "$arg" )
 		tmpdashed=0
 	    elif [ $dashed = 1 ]; then
@@ -603,7 +668,7 @@ function args_parse
 				fi
 				rc=1
 			    fi
-			elif [ $type = ${args_ARGUMENTED} ]; then
+			elif (( $type <= ${args_OPTARGUMENTED} )); then
 			    optqueue+=( "${arg}" )
 			    (( get++ ))
 			else
@@ -629,7 +694,7 @@ function args_parse
 				argqueue+=( "" )
 				nulqueue+=( 1 )
 				"$trigger" "${_arg}" "${std}"
-			    elif [ $type = ${args_ARGUMENTED} ]; then
+			    elif (( $type < ${args_VARIADIC} )); then
 				if [ ${#arg} = $i ]; then
 				    (( get++ ))
 				else
