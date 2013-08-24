@@ -1408,11 +1408,12 @@ long args_parse(int argc, char** argv)
       {
 	char* opt = args_optmap_get_standard(*(optqueue + i));
 	char* arg = argptr > i ? *(argqueue + i) : null;
+	if (argptr <= i)
+	  args_optmap_trigger(opt, null);
 	i++;
 	if ((args_optmap_contains(opt) == false) || (args_opts_contains(opt) == false))
 	  args_opts_new(opt);
-	if (argptr >= i)
-	  args_opts_append(opt, arg);
+	args_opts_append(opt, arg);
 	((args_Array*)map_get(&args_opts, opt))->used = true;
       }
   }
