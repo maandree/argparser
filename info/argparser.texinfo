@@ -56,6 +56,7 @@ Texts. A copy of the license is included in the section entitled
 * C version::                       Using the C version.
 * Bash version::                    Using the Bash version.
 * Trigger functions::               Trigger events at the time an option is parsed.
+* Optional arguments::              Using optional arguments.
 * Colours in help message::         Configuring colour use in help message
 * GNU Free Documentation License::  Copying and sharing this manual.
 @end menu
@@ -342,6 +343,31 @@ are only one or two parameters. Instead, the function is defined
 by overriding the function @code{trigger} when creating the option,
 and @code{this.standard} can be used to get the standard option
 alternative.
+
+
+
+@node Optional arguments
+@chapter Optional arguments
+
+Optionally argumented options work like argumented options.
+They are named @code{Optargumented} options the Java version
+and @code{optargumented} in the other version. The differense
+from argumented options are that the argument must be sticky,
+that is, not separated to another command line argument,
+unless its @code{stickless} method returns true. The default
+behaviour is that the @code{stickless} method returns true
+if and only if the argument does not start with @code{-}
+nor @code{+}.
+
+The stickless method is the last argument in the Python
+version, the first argument in the Bash version as well as
+in the C version (and returns a @code{long int}). The the
+Java version it is definied by reimplementing it when
+creating a subclass to @code{Optargumented}. The stickless
+method only has one parameter, the argument that is being
+tested for using without being sticky.
+
+
 
 
 
