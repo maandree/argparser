@@ -718,7 +718,7 @@ function args_parse
 			else
 			    (( args_unrecognised_count++ ))
 			    if (( args_unrecognised_count <= 5 )); then
-				echo "${args_program}: warning: unrecognised option ${arg}" >> "${args_out}"
+				echo "${args_program}: warning: unrecognised option ${_arg}" >> "${args_out}"
 			    fi
 			    rc=1
 			fi
