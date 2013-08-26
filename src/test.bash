@@ -50,7 +50,7 @@ args_add_argumentless '' 0    'Prints the text: hello world'          --hello
 args_add_argumentless '' 0    ''                                      ++hidden
 
 args_add_argumented       '' 0 LINE 'Prints the choosen line'               -l --line
-args_add_optargumented '' '' 0 LINE 'Prints the choosen line'               -l --Line
+args_add_optargumented '' '' 0 LINE 'Prints the choosen line'               -L --Line
 args_add_variadic         '' 0 LINE 'Prints the choosen lines'              --l --lines
 
 args_parse "$@"

@@ -634,13 +634,7 @@ function args_parse
 		if [ "${args_alternative}" = 1 ] || (( ${#arg} > 2 )) && [ "${arg::1}" = "${arg:1:1}" ]; then
 		    if [ ! $dontget = 0 ]; then
 			(( dontget-- ))
-		    elif [ ! -e "${args_optmap}/${arg}" ]; then
-			(( args_unrecognised_count++ ))
-			if (( args_unrecognised_count <= 5 )); then
-			    echo "${args_program}: warning: unrecognised option ${arg}" >> "${args_out}"
-			fi
-			rc=1
-		    else
+		    elif [ -e "${args_optmap}/${arg}" ]; then
 			std="$(head -n 1 < "${args_optmap}/${arg}")"
 			type="$(head -n 2 < "${args_optmap}/${arg}" | tail -n 1)"
 			trigger="$(tail -n 1 < "${args_optmap}/${arg}")"
@@ -649,26 +643,6 @@ function args_parse
 			    argqueue+=( "" )
 			    nulqueue+=( 1 )
 			    "$trigger" "${arg}" "${std}"
-			elif [ ! "${arg/=/}" = "${arg}" ]; then
-			    _arg="${arg%%=*}"
-			    type="$(head -n 1 < "${args_optmap}/${_arg}" | tail -n 1)"
-			    if (( $type >= ${args_ARGUMENTED} )); then
-				optqueue+=( "${_arg}" )
-				argqueue+=( "${arg#*=}" )
-				nulqueue+=( 0 )
-				if [ $type = ${args_VARIADIC} ]; then
-				    dashed=1
-				    "$trigger" "${arg}" "${std}"
-				else
-				    "$trigger" "${arg}" "${std}" "${arg#*=}"
-				fi
-			    else
-				(( args_unrecognised_count++ ))
-				if (( args_unrecognised_count <= 5 )); then
-				    echo "${args_program}: warning: unrecognised option ${arg}" >> "${args_out}"
-				fi
-				rc=1
-			    fi
 			elif (( $type <= ${args_OPTARGUMENTED} )); then
 			    optqueue+=( "${arg}" )
 			    (( get++ ))
@@ -678,6 +652,37 @@ function args_parse
 			    nulqueue+=( 1 )
 			    dashed=1
 			fi
+		    elif [ ! "${arg/=/}" = "${arg}" ]; then
+			type=x
+			_arg="${arg%%=*}"
+			if [ -e "${args_optmap}/${_arg}" ]; then
+			    type="$(head -n 2 < "${args_optmap}/${_arg}" | tail -n 1)"
+			fi
+			if [ ! $type = x ] && (( $type >= ${args_ARGUMENTED} )); then
+			    optqueue+=( "${_arg}" )
+			    argqueue+=( "${arg#*=}" )
+			    nulqueue+=( 0 )
+			    std="$(head -n 1 < "${args_optmap}/${_arg}")"
+			    trigger="$(tail -n 1 < "${args_optmap}/${_arg}")"
+			    if [ $type = ${args_VARIADIC} ]; then
+				dashed=1
+				"$trigger" "${_arg}" "${std}"
+			    else
+				"$trigger" "${_arg}" "${std}" "${arg#*=}"
+			    fi
+			else
+			    (( args_unrecognised_count++ ))
+			    if (( args_unrecognised_count <= 5 )); then
+				echo "${args_program}: warning: unrecognised option ${_arg}" >> "${args_out}"
+			    fi
+			    rc=1
+			fi
+		    else
+			(( args_unrecognised_count++ ))
+			if (( args_unrecognised_count <= 5 )); then
+			    echo "${args_program}: warning: unrecognised option ${arg}" >> "${args_out}"
+			fi
+			rc=1
 		    fi
 		else
 		    sign="${_arg::1}"
