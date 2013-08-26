@@ -1286,8 +1286,8 @@ public class ArgParser
 	    final Option option = this.optmap.get(optqueue.get(i));
 	    final String opt = option.standard;
 	    final String arg = argqueue.size() > i ? argqueue.get(i) : null;
-	    if (len(argqueue) <= i)
-		option.trigger(optqueue.get(i), null);
+	    if (argqueue.size() <= i)
+		((Argumented)option).trigger(optqueue.get(i), null);
 	    i++;
 	    if (this.opts.get(opt) == null)
 		this.opts.put(opt, new String[] {});
