@@ -51,16 +51,17 @@ class ArgParser():
     '''
     
     
-    def __init__(self, description, usage, longdescription = None, program = None, usestderr = False):
+    def __init__(self, description, usage, longdescription = None, program = None, usestderr = False, abbreviations = None):
         '''
         Constructor.
         The short description is printed on same line as the program name
         
-        @param  description:str       Short, single-line, description of the program
-        @param  usage:str?            Formated, multi-line, usage text, may be `None`
-        @param  longdescription:str?  Long, multi-line, description of the program, may be `None`
-        @param  program:str?          The name of the program, `None` for automatic
-        @param  usestderr:bool        Whether to use stderr instead of stdout
+        @param  description:str                      Short, single-line, description of the program
+        @param  usage:str?                           Formated, multi-line, usage text, may be `None`
+        @param  longdescription:str?                 Long, multi-line, description of the program, may be `None`
+        @param  program:str?                         The name of the program, `None` for automatic
+        @param  usestderr:bool                       Whether to use stderr instead of stdout
+        @param  abbreviations:(str, itr<str>)?→str?  Function that expands abbrevatied options
         '''
         self.linuxvt = ('TERM' in os.environ) and (os.environ['TERM'] == 'linux')
         self.program = sys.argv[0] if program is None else program
@@ -71,6 +72,19 @@ class ArgParser():
         self.opts = {}
         self.optmap = {}
         self.__out = sys.stderr.buffer if usestderr else sys.stdout.buffer
+        self.abbreviations = abbreviations if abbreviations is not None else lambda arg, candidates : None
+        self.__abbreviations = lambda arg : self.abbreviations(arg, self.optmap.keys())
+    
+    
+    @staticmethod
+    def standard_abbreviations():
+        '''
+        Gets the standard abbrevation expender
+        
+        @return  (str, itr<str>)→str?  The standard abbrevation expender
+        '''
+        one = lambda arg : arg[0] if len(arg) == 1 else None
+        return lambda arg, candidates : one(list(filter(lambda a : a.startswith(arg), candidates)))
     
     
     @staticmethod
@@ -278,7 +292,11 @@ class ArgParser():
                             else:
                                 self.optmap[arg_opt][2](arg_opt, self.optmap[arg_opt][0], argqueue[-1])
                         else:
-                            unrecognised(arg)
+                            _arg = self.__abbreviations(arg)
+                            if _arg is None:
+                                unrecognised(arg)
+                            else:
+                                queue[0:0] = [_arg]
                     elif (arg in self.optmap) and (self.optmap[arg][1] <= ArgParser.OPTARGUMENTED):
                         optqueue.append(arg)
                         get += 1
@@ -288,7 +306,11 @@ class ArgParser():
                         argqueue.append(None)
                         dashed = True
                     else:
-                        unrecognised(arg)
+                        _arg = self.__abbreviations(arg)
+                        if _arg is None:
+                            unrecognised(arg)
+                        else:
+                            queue[0:0] = [_arg]
                 else:
                     sign = arg[0]
                     i = 1
