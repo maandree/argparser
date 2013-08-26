@@ -1092,7 +1092,7 @@ public class ArgParser
 		l += opt.argument.length() + 6;
 	    }
 	    else if (opt.getClass() == Optargumented.class)
-	    {	line += useColours ? (" \033[04m" + opt.argument + "\033[24m") : (" [" + opt.argument + "]");
+	    {	line += useColours ? (" [\033[04m" + opt.argument + "\033[24m]") : (" [" + opt.argument + "]");
 		l += opt.argument.length() + 3;
 	    }
 	    else if (opt.getClass() == Argumented.class)
