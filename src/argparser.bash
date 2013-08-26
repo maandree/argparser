@@ -284,9 +284,9 @@ function args_noop
 function args_stickless
 {
     if [ "${1::1}" = '-' ] || [ "${1::1}" = '+' ]; then
-	return 0
-    else
 	return 1
+    else
+	return 0
     fi
 }
 
@@ -620,6 +620,7 @@ function args_parse
 		    nulqueue+=( 0 )
 		    continue
 		fi
+	    fi
 	    if [ $tmpdashed = 1 ]; then
 		args_files+=( "$arg" )
 		tmpdashed=0
