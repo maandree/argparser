@@ -236,6 +236,18 @@ extern args_Option args_new_argumentless(void (*trigger)(char*, char*), int stan
 extern args_Option args_new_argumented(void (*trigger)(char*, char*, char*), char* argument, int standard, char* alternatives, ...);
 
 /**
+ * Creates, but does not add, a option that optionally takes one argument per use
+ * 
+ * @param   stickless        Should return true if the (feed) next argument can used for the argument without being sticky
+ * @param   trigger          Function to invoke when the option is used, with the used option, the standard option and the used value
+ * @param   argument         The new of the argument
+ * @param   standard         The index of the standard alternative name
+ * @param   alternatives...  The alternative names, end with `null`
+ * @return                   The created option
+ */
+extern args_Option args_new_optargumented(long (*stickless)(char*), void (*trigger)(char*, char*, char*), char* argument, int standard, char* alternatives, ...);
+
+/**
  * Creates, but does not add, a option that takes all following arguments
  * 
  * @param   trigger          Function to invoked when the option is used, with the used option and the standard option
