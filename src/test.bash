@@ -49,8 +49,9 @@ args_add_argumentless '' 0    'Prints this help message\n(and exits)' -h -? --he
 args_add_argumentless '' 0    'Prints the text: hello world'          --hello
 args_add_argumentless '' 0    ''                                      ++hidden
 
-args_add_argumented '' 0 LINE 'Prints the choosen line'               -l --line
-args_add_variadic   '' 0 LINE 'Prints the choosen lines'              --l --lines
+args_add_argumented       '' 0 LINE 'Prints the choosen line'               -l --line
+args_add_optargumented '' '' 0 LINE 'Prints the choosen line'               -l --Line
+args_add_variadic         '' 0 LINE 'Prints the choosen lines'              --l --lines
 
 args_parse "$@"
 args_support_alternatives
@@ -71,6 +72,14 @@ elif [ $args_unrecognised_count = 0 ] && [ ! $args_argcount = 0 ] && [ ${#args_f
 	n=$(args_option count --line)
 	while (( $i < $n )); do
 	    args_option get --line $i
+	    (( i++ ))
+	done
+    fi
+    if args_option has -L; then
+	i=0
+	n=$(args_option count --Line)
+	while (( $i < $n )); do
+	    args_option get --Line $i
 	    (( i++ ))
 	done
     fi

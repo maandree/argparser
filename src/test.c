@@ -48,6 +48,7 @@ int main(int argc, char** argv)
   args_add_option(args_new_argumentless(NULL, 0, "++hidden", NULL), 0);
   
   args_add_option(args_new_argumented(NULL, "LINE", 0, "-l", "--line", NULL), "Prints the choosen line");
+  args_add_option(args_new_optargumented(NULL, NULL, "LINE", 0, "-L", "--Line", NULL), "Prints the choosen line");
   args_add_option(args_new_variadic(NULL, "LINE", 0, "--l", "--lines", NULL), "Prints the choosen lines");
   
   args_parse(argc, argv);
@@ -68,6 +69,13 @@ int main(int argc, char** argv)
 	  i = 0;
 	  arr = args_opts_get("--line");
 	  for (n = args_opts_get_count("--line"); i < n; i++)
+	    printf("%s\n", *(arr + i));
+	}
+      if (args_opts_used("-L"))
+	{
+	  i = 0;
+	  arr = args_opts_get("--Line");
+	  for (n = args_opts_get_count("--Line"); i < n; i++)
 	    printf("%s\n", *(arr + i));
 	}
       if (args_opts_used("--lines"))

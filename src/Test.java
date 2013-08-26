@@ -46,6 +46,7 @@ public class Test
 	parser.add(new ArgParser.Argumentless(0, "++hidden"));
 	
 	parser.add(new ArgParser.Argumented("LINE", 0, "-l", "--line"), "Prints the choosen line");
+	parser.add(new ArgParser.Optargumented("LINE", 0, "-L", "--Line"), "Prints the choosen line");
 	parser.add(new ArgParser.Variadic("LINE", 0, "--l", "--lines"), "Prints the choosen lines");
 	
 	parser.parse(args);
@@ -61,6 +62,10 @@ public class Test
 	    }
 	    if (parser.opts.get("-l") != null)
 	    {   for (String line : parser.opts.get("--line"))
+		    System.out.println(line);
+	    }
+	    if (parser.opts.get("-L") != null)
+	    {   for (String line : parser.opts.get("--Line"))
 		    System.out.println(line);
 	    }
 	    if (parser.opts.get("--lines") != null)
