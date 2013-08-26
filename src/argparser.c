@@ -750,6 +750,18 @@ void args_optmap_trigger(char* name, char* value)
 }
 
 /**
+ * Trigger an option
+ * 
+ * @param  name   The option's alternative name
+ * @param  value  The use value
+ */
+void args_optmap_triggerv(char* name, char* value)
+{
+  args_Option* opt = args_options + args_optmap_get_index(name);
+  opt->triggerv(name, opt->standard, value);
+}
+
+/**
  * Evaluate if an argument can be used without being sticky for an optionally argument option
  * 
  * @param  name      The option's alternative name
@@ -1333,10 +1345,10 @@ long args_parse(int argc, char** argv)
 	  char* arg_opt = *(optqueue + optptr - get--);
 	  long passed = true;
 	  if (args_optmap_get_type(arg_opt) == OPTARGUMENTED)
-	    if (args_optmap_stickless(arg_opt, arg))
+	    if (args_optmap_stickless(arg_opt, arg) == false)
 	      {
 		passed = false;
-		args_optmap_trigger(arg_opt, null);
+		args_optmap_triggerv(arg_opt, null);
 		*(argqueue + argptr++) = null;
 	      }
 	  if (passed)
@@ -1487,7 +1499,7 @@ long args_parse(int argc, char** argv)
 	char* opt = args_optmap_get_standard(*(optqueue + i));
 	char* arg = argptr > i ? *(argqueue + i) : null;
 	if (argptr <= i)
-	  args_optmap_trigger(opt, null);
+	  args_optmap_triggerv(opt, null);
 	i++;
 	if ((args_optmap_contains(opt) == false) || (args_opts_contains(opt) == false))
 	  args_opts_new(opt);

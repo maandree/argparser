@@ -330,6 +330,14 @@ extern char* args_options_get_standard(long index);
 void args_optmap_trigger(char* name, char* value);
 
 /**
+ * Trigger an option
+ * 
+ * @param  name   The option's alternative name
+ * @param  value  The use value
+ */
+void args_optmap_triggerv(char* name, char* value);
+
+/**
  * Evaluate if an argument can be used without being sticky for an optionally argument option
  * 
  * @param  name      The option's alternative name
