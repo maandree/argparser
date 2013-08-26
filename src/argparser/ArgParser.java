@@ -496,7 +496,7 @@ public class ArgParser
 	 * @return            Whether the argument can be used without being sticky
 	 */
 	public boolean stickless(final String argument)
-	{   return (argument.startswith("-") || argument.startswith("+")) == false;
+	{   return (argument.startsWith("-") || argument.startsWith("+")) == false;
 	}
     }
     
