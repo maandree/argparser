@@ -242,7 +242,7 @@ char* args_standard_abbreviations(char* argument, char** options, long count)
   for (i = 0; i < count; i++)
     {
       long match = 0;
-      char* opt = *options;
+      char* opt = *(options + i);
       while (*(argument + match) && (*(opt + match) == *(argument + match)))
 	match++;
       if (*(argument + match) == 0)
@@ -1461,7 +1461,7 @@ long args_parse(int argc, char** argv)
 		  }
 		else
 		  {
-		    if ((injection = args__abbreviations(arg)) == null)
+		    if ((injection = args__abbreviations(arg_opt)) == null)
 		      {
 			if (++args_unrecognised_count <= 5)
 			  fprintf(args_out, "%s: warning: unrecognised option %s\n", args_program, arg_opt);

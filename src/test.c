@@ -69,14 +69,14 @@ int main(int argc, char** argv)
 	  i = 0;
 	  arr = args_opts_get("--line");
 	  for (n = args_opts_get_count("--line"); i < n; i++)
-	    printf("%s\n", *(arr + i));
+	    printf("%s\n", *(arr + i) ? *(arr + i) : "(null)");
 	}
       if (args_opts_used("-L"))
 	{
 	  i = 0;
 	  arr = args_opts_get("--Line");
 	  for (n = args_opts_get_count("--Line"); i < n; i++)
-	    printf("%s\n", *(arr + i));
+	    printf("%s\n", *(arr + i) ? *(arr + i) : "(null)");
 	}
       if (args_opts_used("--lines"))
 	{
