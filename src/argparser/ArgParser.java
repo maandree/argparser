@@ -596,6 +596,161 @@ public class ArgParser
     
     
     /**
+     * Abbreviations expander
+     * 
+     * @param   argument  The unrecognised option
+     * @param   options   all recognised options
+     * @return            The only alternative, or {@code null}
+     */
+    public String abbreviations(final String argument, final String[] options)
+    {
+	return null;
+    }
+    
+    /**
+     * Standard abbreviations expander
+     * 
+     * @param   argument  The unrecognised option
+     * @param   options   all recognised options
+     * @return            The only alternative, or {@code null}
+     */
+    public static String standardAbbreviations(final String argument, final String[] options)
+    {
+	String rc = null;
+	for (final String option : options)
+	    if (option.startsWith(argument))
+		if (rc == null)
+		    rc = option;
+		else
+		    return null;
+	return rc;
+    }
+    
+    /**
+     * Abbreviations expander façade
+     * 
+     * @param   argument  The unrecognised option
+     * @return            The only alternative, or {@code null}
+     */
+    private String expand(final String argument)
+    {
+	final Set<String> set = this.optmap.keySet();
+	final String[] options = new String[set.size()];
+	set.toArray(options);
+	return abbreviations(argument, options);
+    }
+    
+    /**
+     * Variant of {@link ArgParser} that uses standard abbreviations
+     */
+    public static class Abbreviations extends ArgParser
+    {
+	/**
+	 * <p>Constructor</p>
+	 * <p>
+	 *   The short description is printed on same line as the program name
+	 * </p>
+	 * 
+	 * @param  description  Short, single-line, description of the program
+	 * @param  usage        Formated, multi-line, usage text, may be {@code null}
+	 */
+	public Abbreviations(final String description, final String usage)
+	{   super(description, usage);
+	}
+	
+	/**
+	 * <p>Constructor</p>
+	 * <p>
+	 *   The short description is printed on same line as the program name
+	 * </p>
+	 * 
+	 * @param  description  Short, single-line, description of the program
+	 * @param  usage        Formated, multi-line, usage text, may be {@code null}
+	 * @param  useStderr    Whether to use stderr instead of stdout
+	 */
+	public Abbreviations(final String description, final String usage, final boolean useStderr)
+	{   super(description, usage, useStderr);
+	}
+	
+	/**
+	 * <p>Constructor</p>
+	 * <p>
+	 *   The short description is printed on same line as the program name
+	 * </p>
+	 * 
+	 * @param  description      Short, single-line, description of the program
+	 * @param  usage            Formated, multi-line, usage text, may be {@code null}
+	 * @param  longDescription  Long, multi-line, description of the program, may be {@code null}
+	 */
+	public Abbreviations(final String description, final String usage, final String longDescription)
+	{   super(description, usage, longDescription);
+	}
+	
+	/**
+	 * <p>Constructor</p>
+	 * <p>
+	 *   The short description is printed on same line as the program name
+	 * </p>
+	 * 
+	 * @param  description      Short, single-line, description of the program
+	 * @param  usage            Formated, multi-line, usage text, may be {@code null}
+	 * @param  longDescription  Long, multi-line, description of the program, may be {@code null}
+	 * @param  useStderr        Whether to use stderr instead of stdout
+	 */
+	public Abbreviations(final String description, final String usage, final String longDescription, final boolean useStderr)
+	{   super(description, usage, longDescription, useStderr);
+	}
+	
+	/**
+	 * <p>Constructor</p>
+	 * <p>
+	 *   The short description is printed on same line as the program name
+	 * </p>
+	 * 
+	 * @param  description      Short, single-line, description of the program
+	 * @param  usage            Formated, multi-line, usage text, may be {@code null}
+	 * @param  longDescription  Long, multi-line, description of the program, may be {@code null}
+	 * @param  program          The name of the program, {@code null} for automatic
+	 */
+	public Abbreviations(final String description, final String usage, final String longDescription, final String program)
+	{   super(description, usage, longDescription, program);
+	}
+	
+	/**
+	 * <p>Constructor</p>
+	 * <p>
+	 *   The short description is printed on same line as the program name
+	 * </p>
+	 * 
+	 * @param  description      Short, single-line, description of the program
+	 * @param  usage            Formated, multi-line, usage text, may be {@code null}
+	 * @param  longDescription  Long, multi-line, description of the program, may be {@code null}
+	 * @param  program          The name of the program, {@code null} for automatic
+	 * @param  useStderr        Whether to use stderr instead of stdout
+	 */
+	public Abbreviations(final String description, final String usage, final String longDescription, final String program, final boolean useStderr)
+	{   super(description, usage, longDescription, program, useStderr);
+	}
+	
+	
+	
+	/**
+	 * Abbreviations expander
+	 * 
+	 * @param   argument  The unrecognised option
+	 * @param   options   all recognised options
+	 * @return            The only alternative, or {@code null}
+	 */
+	@Override
+	public String abbreviations(final String argument, final String[] options)
+	{
+	    return ArgParser.standardAbbreviations(argument, options);
+	}
+	
+    }
+    
+    
+    /**
      * Gets the name of the parent process
      * 
      * @return  The name of the parent process
@@ -1208,7 +1363,7 @@ public class ArgParser
 		    else if (arg.contains("="))
 		    {	String arg_opt = arg.substring(0, arg.indexOf('='));
 			Option arg_opt_opt = this.optmap.get(arg_opt);
-			String value = arg.substring(arg.indexOf('=') + 1)
+			String value = arg.substring(arg.indexOf('=') + 1);
 			if ((arg_opt_opt != null) && (arg_opt_opt instanceof Argumented))
 			{   optqueue.add(arg_opt);
 			    argqueue.add(value);
@@ -1220,11 +1375,14 @@ public class ArgParser
 				((Argumented)arg_opt_opt).trigger(arg_opt, value);
 			}
 			else
-			{   if (++this.unrecognisedCount <= 5)
-				this.println(this.program + ": warning: unrecognised option " + arg_opt, true);
-			    rc = false;
-			}
-		    }
+			{   String _arg;
+			    if ((_arg = this.expand(arg_opt)) != null)
+				queue.add(0, _arg + "=" + value);
+			    else
+			    {   if (++this.unrecognisedCount <= 5)
+				    this.println(this.program + ": warning: unrecognised option " + arg_opt, true);
+				rc = false;
+		    }	}   }
 		    else if ((opt != null) && (opt.getClass() == Variadic.class))
 		    {	optqueue.add(arg);
 			argqueue.add(null);
@@ -1236,11 +1394,14 @@ public class ArgParser
 			get++;
 		    }
 		    else
-		    {   if (++this.unrecognisedCount <= 5)
-			    this.println(this.program + ": warning: unrecognised option " + arg, true);
-			rc = false;
-		    }
-		}
+		    {   String _arg;
+			if ((_arg = this.expand(arg)) != null)
+			    queue.add(0, _arg);
+			else
+			{   if (++this.unrecognisedCount <= 5)
+				this.println(this.program + ": warning: unrecognised option " + arg, true);
+			    rc = false;
+		}   }	}
 		else
 		{   String sign = String.valueOf(arg.charAt(0)), narg;
 		    int i = 1, n = arg.length();

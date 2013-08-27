@@ -25,7 +25,7 @@ public class Test
     {
 	System.out.println("Parent: " + ArgParser.parentName());
 	
-	ArgParser parser = new ArgParser("A test for argparser", "test [options] [files]",
+	ArgParser parser = new ArgParser.Abbreviations("A test for argparser", "test [options] [files]",
 					 "Copyright © 2013  Mattias Andrée (maandree@member.fsf.org)\n" +
 					 "\n" +
 					 "This library is free software: you can redistribute it and/or modify\n" +
