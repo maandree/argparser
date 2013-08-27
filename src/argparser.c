@@ -31,6 +31,7 @@
 #define VARIADIC      3
 
 /* Prototype for static functions */
+static char* args__abbreviations(char* argument);
 static void _sort(char** list, long count, char** temp);
 static void sort(char** list, long count);
 static void _sort_ptr(void** list, long count, void** temp);
@@ -123,8 +124,9 @@ static long args_map_values_size;
  * @param  program          The name of the program, `null` for automatic
  * @param  usestderr        Whether to use stderr instead of stdout
  * @param  alternative      Whether to use single dash/plus long options
+ * @param  abbreviations    Abbreviated option expander, `null` for disabled
  */
-void args_init(char* description, char* usage, char* longdescription, char* program, long usestderr, long alternative)
+void args_init(char* description, char* usage, char* longdescription, char* program, long usestderr, long alternative, char* (*abbreviations)(char*, char**, long))
 {
   char* term = getenv("TERM");
   args_linuxvt = 0;
@@ -159,6 +161,7 @@ void args_init(char* description, char* usage, char* longdescription, char* prog
   args_options = (args_Option*)malloc(args_options_size * sizeof(args_Option));
   map_init(&args_optmap);
   map_init(&args_opts);
+  args_abbreviations = abbreviations;
 }
 
 
@@ -221,6 +224,49 @@ void args_dispose()
     free(values);
     free(freethis);
   }
+}
+
+
+/**
+ * The standard abbrevation expander
+ * 
+ * @param   argument  The option that not recognised
+ * @param   options   All recognised options
+ * @param   count     The number of elements in `options`
+ * @return            The only possible expansion, otherwise `null`
+ */
+char* args_standard_abbreviations(char* argument, char** options, long count)
+{
+  char* rc = null;
+  long i;
+  for (i = 0; i < count; i++)
+    {
+      long match = 0;
+      char* opt = *options;
+      while (*(argument + match) && (*(opt + match) == *(argument + match)))
+	match++;
+      if (*(argument + match) == 0)
+	{
+	  if (rc)
+	    return null;
+	  rc = opt;
+	}
+    }
+  return rc;
+}
+
+
+/**
+ * Abbreviated option expansion function
+ * 
+ * @param   argument  The option that is not recognised
+ * @return            The only alternative, or `null`
+ */
+char* args__abbreviations(char* argument)
+{
+  if (args_abbreviations == null)
+    return null;
+  return args_abbreviations(argument, args_get_optmap(), args_get_optmap_count());
 }
 
 
@@ -1309,6 +1355,7 @@ long args_parse(int argc, char** argv)
   char** argend = argv + argc;
   long dashed = false, tmpdashed = false, get = 0, dontget = 0, rc = true;
   long argptr = 0, optptr = 0, queuesize = argc - 1;
+  char* injection = null;
   char** argqueue;
   char** optqueue;
   
@@ -1337,9 +1384,10 @@ long args_parse(int argc, char** argv)
   optqueue       = (char**)malloc(queuesize * sizeof(char*));
   args_freequeue = (void**)malloc(queuesize * sizeof(void*));
   
-  while (argv != argend)
+  while ((argv != argend) || injection)
     {
-      char* arg = *argv++;
+      char* arg = injection ? injection : *argv++;
+      injection = null;
       if ((get > 0) && (dontget == 0))
 	{
 	  char* arg_opt = *(optqueue + optptr - get--);
@@ -1413,9 +1461,12 @@ long args_parse(int argc, char** argv)
 		  }
 		else
 		  {
-		    if (++args_unrecognised_count <= 5)
-		      fprintf(args_out, "%s: warning: unrecognised option %s\n", args_program, arg);
-		    rc = false;
+		    if ((injection = args__abbreviations(arg)) == null)
+		      {
+			if (++args_unrecognised_count <= 5)
+			  fprintf(args_out, "%s: warning: unrecognised option %s\n", args_program, arg_opt);
+			rc = false;
+		      }
 		    free(arg_opt);
 		  }
 	      }
@@ -1432,11 +1483,12 @@ long args_parse(int argc, char** argv)
 		args_optmap_trigger(arg, null);
 	      }
 	    else
-	      {
-		if (++args_unrecognised_count <= 5)
-		  fprintf(args_out, "%s: warning: unrecognised option %s\n", args_program, arg);
-		rc = false;
-	      }
+	      if ((injection = args__abbreviations(arg)) == null)
+		{
+		  if (++args_unrecognised_count <= 5)
+		    fprintf(args_out, "%s: warning: unrecognised option %s\n", args_program, arg);
+		  rc = false;
+		}
 	  }
 	else
 	  {

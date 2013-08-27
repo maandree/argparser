@@ -192,6 +192,11 @@ char** args_files;
  */
 long args_files_count;
 
+/**
+ * Abbreviated option expander, `null` for disabled
+ */
+char* (*args_abbreviations)(char*, char**, long);
+
 
 
 /**
@@ -204,14 +209,26 @@ long args_files_count;
  * @param  program          The name of the program, `null` for automatic
  * @param  usestderr        Whether to use stderr instead of stdout
  * @param  alternative      Whether to use single dash/plus long options
+ * @param  abbreviations    Abbreviated option expander, `null` for disabled
  */
-extern void args_init(char* description, char* usage, char* longdescription, char* program, long usestderr, long alternative);
+extern void args_init(char* description, char* usage, char* longdescription, char* program, long usestderr, long alternative, char* (*abbreviations)(char*, char**, long));
 
 
 /**
  * Disposes of all resources, run this when you are done
  */
 extern void args_dispose(void);
+
+
+/**
+ * The standard abbrevation expander
+ * 
+ * @param   argument  The option that not recognised
+ * @param   options   All recognised options
+ * @param   count     The number of elements in `options`
+ * @return            The only possible expansion, otherwise `null`
+ */
+extern char* args_standard_abbreviations(char* argument, char** options, long count);
 
 
 /**
