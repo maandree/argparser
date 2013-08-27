@@ -283,20 +283,21 @@ class ArgParser():
                         argqueue.append(None)
                     elif '=' in arg:
                         arg_opt = arg[:arg.index('=')]
+                        value = arg[arg.index('=') + 1:]
                         if (arg_opt in self.optmap) and (self.optmap[arg_opt][1] >= ArgParser.ARGUMENTED):
                             optqueue.append(arg_opt)
-                            argqueue.append(arg[arg.index('=') + 1:])
+                            argqueue.append(value)
                             if self.optmap[arg_opt][1] == ArgParser.VARIADIC:
                                 dashed = True
                                 self.optmap[arg_opt][2](arg_opt, self.optmap[arg_opt][0])
                             else:
-                                self.optmap[arg_opt][2](arg_opt, self.optmap[arg_opt][0], argqueue[-1])
+                                self.optmap[arg_opt][2](arg_opt, self.optmap[arg_opt][0], value)
                         else:
-                            _arg = self.__abbreviations(arg)
+                            _arg = self.__abbreviations(arg_opt)
                             if _arg is None:
-                                unrecognised(arg)
+                                unrecognised(arg_opt)
                             else:
-                                queue[0:0] = [_arg]
+                                queue[0:0] = ['%s=%s' % (_arg, value)]
                     elif (arg in self.optmap) and (self.optmap[arg][1] <= ArgParser.OPTARGUMENTED):
                         optqueue.append(arg)
                         get += 1

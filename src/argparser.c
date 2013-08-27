@@ -1382,7 +1382,7 @@ long args_parse(int argc, char** argv)
   
   argqueue       = (char**)malloc(queuesize * sizeof(char*));
   optqueue       = (char**)malloc(queuesize * sizeof(char*));
-  args_freequeue = (void**)malloc(queuesize * sizeof(void*));
+  args_freequeue = (void**)malloc(queuesize * sizeof(void*) * 2);
   
   while ((argv != argend) || injection)
     {
@@ -1461,7 +1461,23 @@ long args_parse(int argc, char** argv)
 		  }
 		else
 		  {
-		    if ((injection = args__abbreviations(arg_opt)) == null)
+		    if ((injection = args__abbreviations(arg_opt)))
+		      {
+			long n = 1, i, j = 0;
+			char* _injection;
+			for (i = 0; *(injection + i); i++)
+			  n++;
+			for (i = eq + 1; *(arg + i); i++)
+			  n++;
+			*(args_freequeue + args_freeptr++) = _injection = (char*)malloc((n + 1) * sizeof(char));
+			for (i = 0; *(injection + i); i++)
+			  *(_injection + j++) = *(injection + i);
+			*((injection = _injection) + j++) = '=';
+			for (i = eq + 1; *(arg + i); i++)
+			  *(injection + j++) = *(arg + i);
+			*(injection + j) = 0;
+		      }
+		    else
 		      {
 			if (++args_unrecognised_count <= 5)
 			  fprintf(args_out, "%s: warning: unrecognised option %s\n", args_program, arg_opt);

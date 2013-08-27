@@ -635,7 +635,7 @@ function args_help
 # @exit             Whether no unrecognised option is used
 function args_parse
 {
-    local nulqueue=() argqueue=() optqueue=() queue=() opt arg _arg argnull trigger
+    local nulqueue=() argqueue=() optqueue=() queue=() opt arg _arg argnull trigger value
     local dashed=0 tmpdashed=0 get=0 dontget=0 rc=0 i n more std sign type opt_arg passed
     
     args_argcount=$#
@@ -707,9 +707,10 @@ function args_parse
 			if [ -e "${args_optmap}/${_arg}" ]; then
 			    type="$(head -n 2 < "${args_optmap}/${_arg}" | tail -n 1)"
 			fi
+			value="${arg#*=}"
 			if [ ! $type = x ] && (( $type >= ${args_ARGUMENTED} )); then
 			    optqueue+=( "${_arg}" )
-			    argqueue+=( "${arg#*=}" )
+			    argqueue+=( "${value}" )
 			    nulqueue+=( 0 )
 			    std="$(head -n 1 < "${args_optmap}/${_arg}")"
 			    trigger="$(tail -n 1 < "${args_optmap}/${_arg}")"
@@ -717,13 +718,13 @@ function args_parse
 				dashed=1
 				"$trigger" "${_arg}" "${std}"
 			    else
-				"$trigger" "${_arg}" "${std}" "${arg#*=}"
+				"$trigger" "${_arg}" "${std}" "${value}"
 			    fi
 			else
 			    arg="${_arg}"
 			    _arg="$(args__abbreviations "${arg}")"
 			    if [ $? = 0 ]; then
-				arg=( "${_arg}" "$@" )
+				arg=( "${_arg}=${value}" "$@" )
 				set -- "${arg[@]}"
 			    else
 				(( args_unrecognised_count++ ))
