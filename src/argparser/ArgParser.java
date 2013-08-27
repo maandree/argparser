@@ -1208,19 +1208,20 @@ public class ArgParser
 		    else if (arg.contains("="))
 		    {	String arg_opt = arg.substring(0, arg.indexOf('='));
 			Option arg_opt_opt = this.optmap.get(arg_opt);
+			String value = arg.substring(arg.indexOf('=') + 1)
 			if ((arg_opt_opt != null) && (arg_opt_opt instanceof Argumented))
 			{   optqueue.add(arg_opt);
-			    argqueue.add(arg.substring(arg.indexOf('=') + 1));
+			    argqueue.add(value);
 			    if (arg_opt_opt instanceof Variadic)
 			    {	dashed = true;
 				arg_opt_opt.trigger(arg_opt);
 			    }
 			    else
-				((Argumented)arg_opt_opt).trigger(arg_opt, arg.substring(arg.indexOf('=') + 1));
+				((Argumented)arg_opt_opt).trigger(arg_opt, value);
 			}
 			else
 			{   if (++this.unrecognisedCount <= 5)
-				this.println(this.program + ": warning: unrecognised option " + arg, true);
+				this.println(this.program + ": warning: unrecognised option " + arg_opt, true);
 			    rc = false;
 			}
 		    }
