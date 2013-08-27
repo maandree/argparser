@@ -43,7 +43,7 @@ along with this library.  If not, see <http://www.gnu.org/licenses/>.
 )
 
 
-args_init 'A test for argparser' 'test [options] [files]' "$long" '' 1
+args_init 'A test for argparser' 'test [options] [files]' "$long" '' 1 0 args_standard_abbreviations
 
 args_add_argumentless '' 0    'Prints this help message\n(and exits)' -h -? --help
 args_add_argumentless '' 0    'Prints the text: hello world'          --hello

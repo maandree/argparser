@@ -48,6 +48,7 @@ args_VARIADIC=3
 # @param  $4:str  The name of the program, empty for automatic
 # @param  $5:str  Output channel, by fd
 # @param  $6:int  Set to 1 to use single dash/plus for long options
+# @param  $7:str  Abbreviation expander function, empty for none, args_standard_abbreviations for standard
 function args_init
 {
     test "$TERM" = linux
@@ -73,6 +74,54 @@ function args_init
     args_out="/proc/$$/fd/${args_out}"
     args_files=()
     args_alternative="$6"
+    args_abbreviations="$7"
+    if [ "$args_abbreviations" = "" ]; then
+	args_abbreviations=args_noop
+    fi
+}
+
+
+# Standard abbreviation expander
+# 
+# @param   $1:str     The option to expand
+# @param   ...:(str)  Recognised options
+# @return  :str?      The only alternative, otherwise nothing and exit with 1
+# @exit               0 if there is exactly one alternative, otherwise 1
+function args_standard_abbreviations
+{
+    local c=0 n=${#1} arg="$1" rc=""
+    shift 1
+    for candidate in "$@"; do
+	if [ "${candidate::$n}" = "$arg" ]; then
+	    (( c++ ))
+	    if [ $c = 2 ]; then
+		return 1
+	    fi
+	    rc="$candidate"
+	fi
+    done
+    if [ $c = 1 ]; then
+	echo "$rc"
+    else
+	return 1
+    fi
+}
+
+
+# Help invoker for abbreviation expansion
+# 
+# @param  $1:str  The argument
+function args__abbreviations
+{
+    if [ "$args_abbreviations" = "" ]; then
+	return 1
+    fi
+    local opt opts=()
+    while read opt; do
+	opts+=( "$opt" )
+    done < <(ls -1 -- "${args_optmap}") ## Stupid forking, clone for the love of Celestia
+    "$args_abbreviations" "$1" "${opts[@]}"
+    return $?
 }
 
 
@@ -671,18 +720,31 @@ function args_parse
 				"$trigger" "${_arg}" "${std}" "${arg#*=}"
 			    fi
 			else
+			    arg="${_arg}"
+			    _arg="$(args__abbreviations "${arg}")"
+			    if [ $? = 0 ]; then
+				arg=( "${_arg}" "$@" )
+				set -- "${arg[@]}"
+			    else
+				(( args_unrecognised_count++ ))
+				if (( args_unrecognised_count <= 5 )); then
+				    echo "${args_program}: warning: unrecognised option ${arg}" >> "${args_out}"
+				fi
+				rc=1
+			    fi
+			fi
+		    else
+			_arg="$(args__abbreviations "${arg}")"
+			if [ $? = 0 ]; then
+			    arg=( "${_arg}" "$@" )
+			    set -- "${arg[@]}"
+			else
 			    (( args_unrecognised_count++ ))
 			    if (( args_unrecognised_count <= 5 )); then
-				echo "${args_program}: warning: unrecognised option ${_arg}" >> "${args_out}"
+				echo "${args_program}: warning: unrecognised option ${arg}" >> "${args_out}"
 			    fi
 			    rc=1
 			fi
-		    else
-			(( args_unrecognised_count++ ))
-			if (( args_unrecognised_count <= 5 )); then
-			    echo "${args_program}: warning: unrecognised option ${arg}" >> "${args_out}"
-			fi
-			rc=1
 		    fi
 		else
 		    sign="${_arg::1}"
@@ -733,7 +795,7 @@ function args_parse
 		args_files+=( "$arg" )
 	    fi
 	done
-	set "${queue[@]}" > /dev/null
+	set -- "${queue[@]}" > /dev/null
 	queue=()
     done
     
