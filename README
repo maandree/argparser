@@ -1,4 +1,6 @@
 Command line option parser library for multiple languages
 with the capability of both - and + short options and
 both -- and ++ long options. It supports variadic options,
-colours and -- and temporary -- using ++.
+colours, --, temporary -- using ++, stickness configurable
+optionally argumented options, and configurable abbreviations
+that can be used to typo correction if you so wish.
