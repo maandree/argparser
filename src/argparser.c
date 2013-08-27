@@ -1420,7 +1420,7 @@ long args_parse(int argc, char** argv)
       else if (((*arg == '-') || (*arg == '+')) && (*(arg + 1) != 0))
 	if (args_alternative || (*arg == *(arg + 1)))
 	  {
-	    long eq = 0, type = -1;
+	    long eq = 0, type = 100;
 	    if (dontget <= 0)
 	      {
 		if (args_optmap_contains(arg))
@@ -1551,7 +1551,7 @@ long args_parse(int argc, char** argv)
 	char* opt = args_optmap_get_standard(*(optqueue + i));
 	char* arg = argptr > i ? *(argqueue + i) : null;
 	if (argptr <= i)
-	  args_optmap_triggerv(opt, null);
+	  args_optmap_triggerv(*(optqueue + i), null);
 	i++;
 	if ((args_optmap_contains(opt) == false) || (args_opts_contains(opt) == false))
 	  args_opts_new(opt);
