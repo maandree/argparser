@@ -57,6 +57,7 @@ Texts. A copy of the license is included in the section entitled
 * Bash version::                    Using the Bash version.
 * Trigger functions::               Trigger events at the time an option is parsed.
 * Optional arguments::              Using optional arguments.
+* Abbreviations::                   Using option abbreviations.
 * Colours in help message::         Configuring colour use in help message
 * GNU Free Documentation License::  Copying and sharing this manual.
 @end menu
@@ -224,7 +225,9 @@ free its resources using function @code{args_dispose}.
 @code{args_init} corresponds the the @code{ArgParser} constructor in
 the Python version, but all parameters are manditory, additionally
 there as an argument that should be set to be true if you want to use
-long options with one dash or plus but not short options.
+long options with one dash or plus but not short options, as well as
+a seventh argument that you should set to @code{null} until you
+have read @ref{Abbreviations}.
 
 @code{args_arguments}, @code{args_arguments_count},
 @code{args_unrecognised_count}, @code{args_message} and @code{args_files}
@@ -367,6 +370,44 @@ creating a subclass to @code{Optargumented}. The stickless
 method only has one parameter, the argument that is being
 tested for using without being sticky.
 
+
+
+@node Abbreviations
+@chapter Abbreviations
+
+Abbreviations is a functionallity that lets the user just
+write the beginning of an option and not the complete name.
+Conside you have the options @option{--help} and
+@option{--help-all}. If the user types @option{--help-} we
+know that he probably meant @option{--help-all}, but if
+less then @option{--help} is written so do not know.
+
+The author of the software that uses the library can
+chose whether to enable this, disable this or something
+completely different with it, for example typo correction.
+
+The constructor in the Python version and the initialisers
+in the C version and the Bash version are blessed with
+an additionall parameter. A function pointer that is used
+to get the correction of an unrecognised option. If this
+is left out — not possible in the C version — or is is
+@code{null} (C), @code{None} (Python) or empty (Bash) this
+feature is disabled. The function should take one string,
+the unrecognised option, an array (a list in Python) of
+strings, all recognised options, and return a string, the
+selection options (the expansion of the unrecognised option).
+If exactly one option cannot be selected @code{null} (C, Java)
+or @code{None} (Python) should be returned and in the Bash
+version the exit value for function should not equal zero.
+In the Java version you override the class's function
+@code{abbreviations}.
+
+For the standard behaviour of abbreviation expansion, use
+the function @code{args_standard_abbreviations} (C and Bash),
+@code{ArgParser.standard_abbreviations} (Python) or
+@code{ArgParser.standardAbbreviations} (Java).
+In the Java version you can do this by simply using
+@code{ArgParser.Abbreviations} instead of @code{ArgParser}.
 
 
 
