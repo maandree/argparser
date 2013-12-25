@@ -73,7 +73,7 @@ class ArgParser():
         self.optmap = {}
         self.__out = sys.stderr.buffer if usestderr else sys.stdout.buffer
         self.abbreviations = abbreviations if abbreviations is not None else lambda arg, candidates : None
-        self.__abbreviations = lambda arg : self.abbreviations(arg, self.optmap.keys())
+        self.__abbreviations = lambda arg : self.abbreviations(arg, list(self.optmap.keys()))
     
     
     @staticmethod
@@ -81,7 +81,7 @@ class ArgParser():
         '''
         Gets the standard abbrevation expender
         
-        @return  (str, itr<str>)→str?  The standard abbrevation expender
+        @return  (str, list<str>)→str?  The standard abbrevation expender
         '''
         one = lambda arg : arg[0] if len(arg) == 1 else None
         return lambda arg, candidates : one(list(filter(lambda a : a.startswith(arg), candidates)))

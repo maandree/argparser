@@ -60,8 +60,8 @@ bin/argparser.bash: src/argparser.bash
 java: bin/ArgParser.jar
 bin/ArgParser.jar: src/argparser/ArgParser.java
 	@mkdir -p bin
-	$(JAVAC) $(JAVA_OPTIMISE) -cp src -s src -d bin src/argparser/ArgParser.java
-	$(JAVAC) $(JAVA_OPTIMISE) -cp src -s src -d bin src/Test.java
+	$(JAVAC) $(JAVA_OPTIMISE) -encoding UTF-8 -cp src -s src -d bin src/argparser/ArgParser.java
+	$(JAVAC) $(JAVA_OPTIMISE) -encoding UTF-8 -cp src -s src -d bin src/Test.java
 	cd bin ; jar cf ArgParser.jar argparser/ArgParser*.class
 
 .PHONY: c
