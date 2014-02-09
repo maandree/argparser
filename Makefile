@@ -35,11 +35,10 @@ all: python bash java c doc
 doc: info
 
 .PHONY: info
-info: argparser.info.gz
+info: argparser.info
 
-%.info.gz: info/%.texinfo
+%.info: info/%.texinfo
 	makeinfo "$<"
-	gzip -9 -f "$*.info"
 
 
 .PHONY: python
@@ -104,8 +103,8 @@ install-license:
 install-doc: install-info
 
 .PHONY: install-info
-install-info: argparser.info.gz
-	install -Dm644 argparser.info.gz "$(DESTDIR)$(PREFIX)$(SHARE)/info/$(PKGNAME).info.gz"
+install-info: argparser.info
+	install -Dm644 argparser.info "$(DESTDIR)$(PREFIX)$(DATA)/info/$(PKGNAME).info"
 
 
 
@@ -141,7 +140,7 @@ uninstall-doc: uninstall-info
 
 .PHONY: uninstall-info
 uninstall-info:
-	rm -- "$(DESTDIR)$(PREFIX)$(SHARE)/info/$(PKGNAME).info.gz"
+	rm -- "$(DESTDIR)$(PREFIX)$(DATA)/info/$(PKGNAME).info"
 
 
 
