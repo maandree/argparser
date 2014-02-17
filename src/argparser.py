@@ -56,12 +56,12 @@ class ArgParser():
         Constructor.
         The short description is printed on same line as the program name
         
-        @param  description:str                      Short, single-line, description of the program
-        @param  usage:str?                           Formated, multi-line, usage text, may be `None`
-        @param  longdescription:str?                 Long, multi-line, description of the program, may be `None`
-        @param  program:str?                         The name of the program, `None` for automatic
-        @param  usestderr:bool                       Whether to use stderr instead of stdout
-        @param  abbreviations:(str, itr<str>)?→str?  Function that expands abbrevatied options
+        @param  description:str                                               Short, single-line, description of the program
+        @param  usage:str?                                                    Formated, multi-line, usage text, may be `None`
+        @param  longdescription:str?                                          Long, multi-line, description of the program, may be `None`
+        @param  program:str?                                                  The name of the program, `None` for automatic
+        @param  usestderr:bool                                                Whether to use stderr instead of stdout
+        @param  (opt:str, opts:list<str>, mapping:dict<str, str>?=None)→str?  Function that expands abbrevatied options
         '''
         self.linuxvt = ('TERM' in os.environ) and (os.environ['TERM'] == 'linux')
         self.program = sys.argv[0] if program is None else program
@@ -72,8 +72,13 @@ class ArgParser():
         self.opts = {}
         self.optmap = {}
         self.__out = sys.stderr.buffer if usestderr else sys.stdout.buffer
-        self.abbreviations = abbreviations if abbreviations is not None else lambda arg, candidates : None
-        self.__abbreviations = lambda arg : self.abbreviations(arg, list(self.optmap.keys()))
+        self.abbreviations = abbreviations if abbreviations is not None else lambda arg, candidates, mapping = None : None
+        def get_mapping(map_):
+            rc = {}
+            for key in map_.keys():
+                rc[key] = map_[key][0]
+            return rc
+        self.__abbreviations = lambda arg : self.abbreviations(arg, list(self.optmap.keys()), get_mapping(self.optmap))
     
     
     @staticmethod
@@ -81,10 +86,22 @@ class ArgParser():
         '''
         Gets the standard abbrevation expender
         
-        @return  (str, list<str>)→str?  The standard abbrevation expender
+        @return  :(opt:str, opts:list<str>, mapping:dict<str, str>?=None)→str?  The standard abbrevation expender
         '''
+        def uniq(items):
+            if len(items) < 2:
+                return items
+            items = sorted(items)
+            rc = items[:1]
+            for elem in items[1:]:
+                if not elem == rc[-1]:
+                    rc.append(elem)
+            return rc
         one = lambda arg : arg[0] if len(arg) == 1 else None
-        return lambda arg, candidates : one(list(filter(lambda a : a.startswith(arg), candidates)))
+        lfilter = lambda f, l : list(filter(f, l))
+        map_ = lambda mapping, args : args if mapping is None else [mapping[a] for a in args]
+        test = lambda arg : lambda a : a.startswith(arg)
+        return lambda arg, candidates, mapping = None : one(uniq(map_(mapping, lfilter(test(arg), candidates))))
     
     
     @staticmethod
