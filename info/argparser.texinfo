@@ -93,7 +93,7 @@ and three optional arguments. The first argument, @code{description}, is
 a short, single-line, description of the program. The second argument,
 @code{usage}, is multi-line usage text that is recommended to contain ANSI
 colour escape sequences (for portability ESC 39m, ESC 49m and colours
-beyond the lower 8 are not not recommended to be used); @code{None} can
+beyond the lower 8 are not recommended to be used); @code{None} can
 be used if you do not have a usage descriptor.
 @code{ArgParser}'s constructors there optional arguments are:
 @code{longdescription}, @code{program} and @code{usestderr}.
