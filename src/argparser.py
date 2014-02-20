@@ -86,7 +86,7 @@ class ArgParser():
         '''
         Gets the standard abbrevation expender
         
-        @return  :(opt:str, opts:list<str>, mapping:dict<str, str>?=None)→str?  The standard abbrevation expender
+        @return  :(opt:str, opts:list<str>, mapping:dict<str, str>)→str?  The standard abbrevation expender
         '''
         def uniq(items):
             if len(items) < 2:
@@ -99,9 +99,9 @@ class ArgParser():
             return rc
         one = lambda arg : arg[0] if len(arg) == 1 else None
         lfilter = lambda f, l : list(filter(f, l))
-        map_ = lambda mapping, args : args if mapping is None else [mapping[a] for a in args]
+        map_ = lambda mapping, args : [mapping[a] for a in args]
         test = lambda arg : lambda a : a.startswith(arg)
-        return lambda arg, candidates, mapping = None : one(uniq(map_(mapping, lfilter(test(arg), candidates))))
+        return lambda arg, candidates, mapping : one(uniq(map_(mapping, lfilter(test(arg), candidates))))
     
     
     @staticmethod
