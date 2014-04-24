@@ -168,7 +168,7 @@ void args_init(char* description, char* usage, char* longdescription, char* prog
 /**
  * Disposes of all resources, run this when you are done
  */
-void args_dispose()
+void args_dispose(void)
 {
   if (args_files != null)
     free(args_files);
