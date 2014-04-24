@@ -41,7 +41,8 @@ int main(int argc, char** argv)
 	    "GNU Affero General Public License for more details.\n"
 	    "\n"
 	    "You should have received a copy of the GNU Affero General Public License\n"
-	    "along with this library.  If not, see <http://www.gnu.org/licenses/>.", 0, 1, 0, args_standard_abbreviations);
+	    "along with this library.  If not, see <http://www.gnu.org/licenses/>.",
+	    0, 1, 0, args_standard_abbreviations);
   
   args_add_option(args_new_argumentless(NULL, 1, "-h", "-?", "--help", NULL), "Prints this help message\n(and exits)");
   args_add_option(args_new_argumentless(NULL, 0, "--hello", NULL), "Prints the text: hello world");
@@ -59,7 +60,7 @@ int main(int argc, char** argv)
   else if (!args_unrecognised_count && args_arguments_count && !args_files_count)
     {
       char** arr;
-      long i = 0, n;
+      size_t i = 0, n;
       i = 0;
       if (args_opts_used("--hello"))
 	for (n = args_opts_get_count("--hello"); i < n; i++)
@@ -92,7 +93,7 @@ int main(int argc, char** argv)
     }
   else
     {
-      long i;
+      size_t i;
       printf("Number of unrecognised options: %li\n", args_unrecognised_count);
       printf("Entered message: %s\n", args_message ? args_message : "null");
       printf("Entered files:\n");

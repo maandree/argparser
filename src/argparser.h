@@ -30,32 +30,32 @@ typedef struct
   /**
    * The type of the option, either of: `ARGUMENTLESS`, `ARGUMENTED`, `VARIADIC`
    */
-  long type;
+  int type;
   
   /**
    * Alterative option names
    */
-  char** alternatives;
+  const char** alternatives;
   
   /**
    * Number of elements in `alternatives`
    */
-  long alternatives_count;
+  size_t alternatives_count;
   
   /**
    * Standard option name
    */
-  char* standard;
+  const char* standard;
   
   /**
    * Argument name, not for argumentless options
    */
-  char* argument;
+  const char* argument;
   
   /**
    * Help text, multi-line
    */
-  char* help;
+  const char* help;
   
   /**
    * Invoked when the option is used
@@ -80,7 +80,7 @@ typedef struct
    * @param   argument  The next argument
    * @return            Whether the argument can be used without being sticky
    */
-  long (*stickless)(char*);
+  size_t (*stickless)(char*);
     
 } args_Option;
 
@@ -93,12 +93,12 @@ typedef struct
   /**
    * Available keys
    */
-  char** keys;
+  const char** keys;
   
   /**
    * The number of available keys
    */
-  long key_count;
+  size_t key_count;
   
   /**
    * Indefinite depth array with 16 or 17 elements per level, the last being the value at the position. The first level has 17 elements and the levels alternates between 16 and 17 elements.
@@ -121,12 +121,12 @@ typedef struct
   /**
    * The length of `values`
    */
-  long count;
+  size_t count;
   
   /**
    * Whether the item is used, that is, the data exists even if the count is zero
    */
-  long used;
+  int used;
   
 } args_Array;
 
@@ -140,17 +140,17 @@ char* args_program;
 /**
  * Short, single-line, description of the program
  */
-char* args_description;
+const char* args_description;
 
 /**
  * Formated, multi-line, usage text, `null` if none
  */
-char* args_usage;
+const char* args_usage;
 
 /**
  * Long, multi-line, description of the program, `null` if none
  */
-char* args_longdescription;
+const char* args_longdescription;
 
 /**
  * The error output file descriptor
@@ -170,12 +170,12 @@ char** args_arguments;
 /**
  * The number of passed arguments
  */
-long args_arguments_count;
+size_t args_arguments_count;
 
 /**
  * The number of unrecognised arguments
  */
-long args_unrecognised_count;
+size_t args_unrecognised_count;
 
 /**
  * The concatination of `files` with blankspaces as delimiters, `null` if no files
@@ -190,12 +190,12 @@ char** args_files;
 /**
  * The number of elements in `args_files`
  */
-long args_files_count;
+size_t args_files_count;
 
 /**
  * Abbreviated option expander, `null` for disabled
  */
-char* (*args_abbreviations)(char*, char**, long);
+const char* (*args_abbreviations)(const char*, const char**, size_t);
 
 
 
@@ -211,7 +211,7 @@ char* (*args_abbreviations)(char*, char**, long);
  * @param  alternative      Whether to use single dash/plus long options
  * @param  abbreviations    Abbreviated option expander, `null` for disabled
  */
-void args_init(char* description, char* usage, char* longdescription, char* program, long usestderr, long alternative, char* (*abbreviations)(char*, char**, long));
+void args_init(const char* description, const char* usage, const char* longdescription, const char* program, int usestderr, int alternative, const char* (*abbreviations)(const char*, const char**, size_t));
 
 
 /**
@@ -228,7 +228,7 @@ void args_dispose(void);
  * @param   count     The number of elements in `options`
  * @return            The only possible expansion, otherwise `null`
  */
-char* args_standard_abbreviations(char* argument, char** options, long count) __attribute__((pure));
+const char* args_standard_abbreviations(const char* argument, const char** options, size_t count) __attribute__((pure));
 
 
 /**
@@ -239,7 +239,7 @@ char* args_standard_abbreviations(char* argument, char** options, long count) __
  * @param   alternatives...  The alternative names, end with `null`
  * @return                   The created option
  */
-args_Option args_new_argumentless(void (*trigger)(char*, char*), int standard, char* alternatives, ...);
+args_Option args_new_argumentless(void (*trigger)(char*, char*), ssize_t standard, const char* alternatives, ...);
 
 /**
  * Creates, but does not add, a option that takes one argument per use
@@ -250,7 +250,7 @@ args_Option args_new_argumentless(void (*trigger)(char*, char*), int standard, c
  * @param   alternatives...  The alternative names, end with `null`
  * @return                   The created option
  */
-args_Option args_new_argumented(void (*trigger)(char*, char*, char*), char* argument, int standard, char* alternatives, ...);
+args_Option args_new_argumented(void (*trigger)(char*, char*, char*), const char* argument, ssize_t standard, const char* alternatives, ...);
 
 /**
  * Creates, but does not add, a option that optionally takes one argument per use
@@ -262,7 +262,7 @@ args_Option args_new_argumented(void (*trigger)(char*, char*, char*), char* argu
  * @param   alternatives...  The alternative names, end with `null`
  * @return                   The created option
  */
-args_Option args_new_optargumented(long (*stickless)(char*), void (*trigger)(char*, char*, char*), char* argument, int standard, char* alternatives, ...);
+args_Option args_new_optargumented(long (*stickless)(char*), void (*trigger)(char*, char*, char*), const char* argument, ssize_t standard, const char* alternatives, ...);
 
 /**
  * Creates, but does not add, a option that takes all following arguments
@@ -273,7 +273,7 @@ args_Option args_new_optargumented(long (*stickless)(char*), void (*trigger)(cha
  * @param   alternatives...  The alternative names, end with `null`
  * @return                   The created option
  */
-args_Option args_new_variadic(void (*trigger)(char*, char*), char* argument, int standard, char* alternatives, ...);
+args_Option args_new_variadic(void (*trigger)(char*, char*), const char* argument, ssize_t standard, const char* alternatives, ...);
 
 
 /**
@@ -288,7 +288,7 @@ args_Option* args_get_options(void) __attribute__((pure));
  * 
  * @return  The number of elements in the array returned by `args_get_options`
  */
-long args_get_options_count(void) __attribute__((pure));
+size_t args_get_options_count(void) __attribute__((pure));
 
 /**
  * Gets the option with a specific index
@@ -296,7 +296,7 @@ long args_get_options_count(void) __attribute__((pure));
  * @param   index  The option's index
  * @return         The option
  */
-args_Option args_options_get(long index) __attribute__((pure));
+args_Option args_options_get(size_t index) __attribute__((pure));
 
 /**
  * Gets the type of a option with a specific index
@@ -304,7 +304,7 @@ args_Option args_options_get(long index) __attribute__((pure));
  * @param   index  The option's index
  * @return         The option's type
  */
-long args_options_get_type(long index) __attribute__((pure));
+int args_options_get_type(size_t index) __attribute__((pure));
 
 /**
  * Gets the number of alternative option names for a option with a specific index
@@ -312,7 +312,7 @@ long args_options_get_type(long index) __attribute__((pure));
  * @param   index  The option's index
  * @return         The option's number of alternative option names
  */
-long args_options_get_alternatives_count(long index) __attribute__((pure));
+size_t args_options_get_alternatives_count(size_t index) __attribute__((pure));
 
 /**
  * Gets the alternative option names for a option with a specific index
@@ -320,7 +320,7 @@ long args_options_get_alternatives_count(long index) __attribute__((pure));
  * @param   index  The option's index
  * @return         The option's alternative option names
  */
-char** args_options_get_alternatives(long index) __attribute__((pure));
+const char** args_options_get_alternatives(size_t index) __attribute__((pure));
 
 /**
  * Gets the argument name for a option with a specific index
@@ -328,7 +328,7 @@ char** args_options_get_alternatives(long index) __attribute__((pure));
  * @param   index  The option's index
  * @return         The option's argument name
  */
-char* args_options_get_argument(long index) __attribute__((pure));
+const char* args_options_get_argument(size_t index) __attribute__((pure));
 
 /**
  * Gets the standard option name for a option with a specific index
@@ -336,7 +336,7 @@ char* args_options_get_argument(long index) __attribute__((pure));
  * @param   index  The option's index
  * @return         The option's standard option name
  */
-char* args_options_get_standard(long index) __attribute__((pure));
+const char* args_options_get_standard(size_t index) __attribute__((pure));
 
 /**
  * Trigger an option
@@ -344,7 +344,7 @@ char* args_options_get_standard(long index) __attribute__((pure));
  * @param  name   The option's alternative name
  * @param  value  The use value, `null` if argumentless or variadic
  */
-void args_optmap_trigger(char* name, char* value);
+void args_optmap_trigger(const char* name, char* value);
 
 /**
  * Trigger an option
@@ -352,15 +352,16 @@ void args_optmap_trigger(char* name, char* value);
  * @param  name   The option's alternative name
  * @param  value  The use value
  */
-void args_optmap_triggerv(char* name, char* value);
+void args_optmap_triggerv(const char* name, char* value);
 
 /**
  * Evaluate if an argument can be used without being sticky for an optionally argument option
  * 
- * @param  name      The option's alternative name
- * @param  argument  The argument
+ * @param   name      The option's alternative name
+ * @param   argument  The argument
+ * @return            TODO
  */
-long args_optmap_stickless(char* name, char* argument);
+long args_optmap_stickless(const char* name, char* argument);
 
 /**
  * Gets the help text for a option with a specific index
@@ -368,7 +369,7 @@ long args_optmap_stickless(char* name, char* argument);
  * @param   index  The option's index
  * @return         The option's help text
  */
-char* args_options_get_help(long index) __attribute__((pure));
+const char* args_options_get_help(size_t index) __attribute__((pure));
 
 
 /**
@@ -383,7 +384,7 @@ char** args_get_opts(void) __attribute__((pure));
  * 
  * @return  The number of available options
  */
-long args_get_opts_count(void) __attribute__((pure));
+size_t args_get_opts_count(void) __attribute__((pure));
 
 /**
  * Gets whether an option is available
@@ -391,14 +392,14 @@ long args_get_opts_count(void) __attribute__((pure));
  * @param   name  The option
  * @return        Whether an option is available
  */
-long args_opts_contains(char* name) __attribute__((pure));
+int args_opts_contains(const char* name) __attribute__((pure));
 
 /**
  * Initialise an option
  * 
  * @param  name  The option
  */
-void args_opts_new(char* name);
+void args_opts_new(const char* name);
 
 /**
  * Appends a value to an option
@@ -406,14 +407,14 @@ void args_opts_new(char* name);
  * @param  name   The option
  * @param  value  The new value
  */
-void args_opts_append(char* name, char* value);
+void args_opts_append(const char* name, char* value);
 
 /**
  * Removes all values from an option
  * 
  * @param  name  The option
  */
-void args_opts_clear(char* name);
+void args_opts_clear(const char* name);
 
 /**
  * Gets the values for an option
@@ -421,7 +422,7 @@ void args_opts_clear(char* name);
  * @param   name  The option
  * @return        The values
  */
-char** args_opts_get(char* name) __attribute__((pure));
+char** args_opts_get(const char* name) __attribute__((pure));
 
 /**
  * Gets the number of values for an option
@@ -429,7 +430,7 @@ char** args_opts_get(char* name) __attribute__((pure));
  * @param   name  The option
  * @return        The number of values
  */
-long args_opts_get_count(char* name) __attribute__((pure));
+size_t args_opts_get_count(const char* name) __attribute__((pure));
 
 /**
  * Sets the values for an option
@@ -437,7 +438,7 @@ long args_opts_get_count(char* name) __attribute__((pure));
  * @param  name   The option
  * @param  count  The values
  */
-void args_opts_put(char* name, char** values);
+void args_opts_put(const char* name, char** values);
 
 /**
  * Sets the number of values for an option
@@ -445,7 +446,7 @@ void args_opts_put(char* name, char** values);
  * @param  name   The option
  * @param  count  The number of values
  */
-void args_opts_put_count(char* name, long count);
+void args_opts_put_count(const char* name, size_t count);
 
 /**
  * Checks whether an option is used
@@ -453,7 +454,7 @@ void args_opts_put_count(char* name, long count);
  * @param   name  The option
  * @return        Whether the option is used
  */
-long args_opts_used(char* name) __attribute__((pure));
+int args_opts_used(const char* name) __attribute__((pure));
 
 
 /**
@@ -468,7 +469,7 @@ char** args_get_optmap(void) __attribute__((pure));
  * 
  * @return  The number of elements returned by `args_get_optmap`
  */
-long args_get_optmap_count(void) __attribute__((pure));
+size_t args_get_optmap_count(void) __attribute__((pure));
 
 /**
  * Maps alternative name for a option
@@ -476,7 +477,7 @@ long args_get_optmap_count(void) __attribute__((pure));
  * @param  name   The option's alternative name
  * @param  index  The option's index
  */
-void args_optmap_put(char* name, long index);
+void args_optmap_put(const char* name, size_t index);
 
 /**
  * Gets the option with a specific alternative name
@@ -484,7 +485,7 @@ void args_optmap_put(char* name, long index);
  * @param   name  The option's alternative name
  * @return        The option
  */
-args_Option args_optmap_get(char* name) __attribute__((pure));
+args_Option args_optmap_get(const char* name) __attribute__((pure));
 
 /**
  * Gets the index of a option with a specific alternative name
@@ -492,7 +493,7 @@ args_Option args_optmap_get(char* name) __attribute__((pure));
  * @param   name  The option's alternative name
  * @return        The option's index, negative if not found
  */
-long args_optmap_get_index(char* name) __attribute__((pure));
+ssize_t args_optmap_get_index(const char* name) __attribute__((pure));
 
 /**
  * Checks whether an options with a specific alternative name exists
@@ -500,7 +501,7 @@ long args_optmap_get_index(char* name) __attribute__((pure));
  * @param   name  One of the names of the option
  * @return        Whether the option exists
  */
-long args_optmap_contains(char* name) __attribute__((pure));
+int args_optmap_contains(const char* name) __attribute__((pure));
 
 /**
  * Gets the type of a option with a specific alternative name
@@ -508,7 +509,7 @@ long args_optmap_contains(char* name) __attribute__((pure));
  * @param   name  The option's alternative name
  * @return        The option's type
  */
-long args_optmap_get_type(char* name) __attribute__((pure));
+int args_optmap_get_type(const char* name) __attribute__((pure));
 
 /**
  * Gets the standard option name for a option with a specific alternative name
@@ -516,7 +517,7 @@ long args_optmap_get_type(char* name) __attribute__((pure));
  * @param   name  The option's alternative name
  * @return        The option's standard option name
  */
-char* args_optmap_get_standard(char* name) __attribute__((pure));
+const char* args_optmap_get_standard(const char* name) __attribute__((pure));
 
 
 /**
@@ -525,7 +526,7 @@ char* args_optmap_get_standard(char* name) __attribute__((pure));
  * @param  option  The option
  * @param  help    Help text, multi-line, `null` if hidden
  */
-void args_add_option(args_Option option, char* help);
+void args_add_option(args_Option option, const char* help);
 
 /**
  * Gets the name of the parent process
@@ -533,7 +534,7 @@ void args_add_option(args_Option option, char* help);
  * @param   levels  The number of parents to walk, 0 for self, and 1 for direct parent
  * @return          The name of the parent process, `null` if not found
  */
-char* args_parent_name(long levels);
+char* args_parent_name(size_t levels);
 
 /**
  * Checks the correctness of the number of used non-option arguments
@@ -541,7 +542,7 @@ char* args_parent_name(long levels);
  * @param   min  The minimum number of files
  * @return       Whether the usage was correct
  */
-long args_test_files_min(long min) __attribute__((pure));
+int args_test_files_min(size_t min) __attribute__((pure));
 
 /**
  * Checks the correctness of the number of used non-option arguments
@@ -549,7 +550,7 @@ long args_test_files_min(long min) __attribute__((pure));
  * @param   max  The maximum number of files
  * @return       Whether the usage was correct
  */
-long args_test_files_max(long max) __attribute__((pure));
+int args_test_files_max(size_t max) __attribute__((pure));
 
 /**
  * Checks the correctness of the number of used non-option arguments
@@ -558,7 +559,7 @@ long args_test_files_max(long max) __attribute__((pure));
  * @param   max  The maximum number of files
  * @return       Whether the usage was correct
  */
-long args_test_files(long min, long max) __attribute__((pure));
+int args_test_files(size_t min, size_t max) __attribute__((pure));
 
 /**
  * Checks for out of context option usage
@@ -567,7 +568,7 @@ long args_test_files(long min, long max) __attribute__((pure));
  * @param   allowed_count  The number of elements in `allowed`
  * @return                 Whether only allowed options was used
  */
-long args_test_allowed(char** allowed, long allowed_count);
+int args_test_allowed(const char** allowed, size_t allowed_count);
 
 /**
  * Checks for option conflicts
@@ -576,7 +577,7 @@ long args_test_allowed(char** allowed, long allowed_count);
  * @param   exclusives_count  The number of elements in `exclusives`
  * @return                    Whether at most one exclusive option was used
  */
-long args_test_exclusiveness(char** exclusives, long exclusives_count);
+int args_test_exclusiveness(const char** exclusives, size_t exclusives_count);
 
 /**
  * Maps up options that are alternatives to the first alternative for each option
@@ -597,5 +598,5 @@ void args_help();
  * @param   argv  The command line arguments, it should include the execute file at index 0
  * @return        Whether no unrecognised option is used
  */
-long args_parse(int argc, char** argv);
+int args_parse(int argc, char** argv);
 
