@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <unistd.h>
+#include <string.h>
 
 
 /**
@@ -63,7 +64,7 @@ typedef struct
    * @param  The used option alternative
    * @param  The standard option alternative
    */
-  void (*trigger)(char*, char*);
+  void (*trigger)(const char*, const char*);
     
   /**
    * Invoked when the option is used
@@ -72,7 +73,7 @@ typedef struct
    * @param  The standard option alternative
    * @param  The used value
    */
-  void (*triggerv)(char*, char*, char*);
+  void (*triggerv)(const char*, const char*, char*);
   
   /**
    * Should return true if the next argument can used for the argument without being sticky
@@ -80,7 +81,7 @@ typedef struct
    * @param   argument  The next argument
    * @return            Whether the argument can be used without being sticky
    */
-  size_t (*stickless)(char*);
+  int (*stickless)(const char*);
     
 } args_Option;
 
@@ -239,7 +240,7 @@ const char* args_standard_abbreviations(const char* argument, const char** optio
  * @param   alternatives...  The alternative names, end with `null`
  * @return                   The created option
  */
-args_Option args_new_argumentless(void (*trigger)(char*, char*), ssize_t standard, const char* alternatives, ...);
+args_Option args_new_argumentless(void (*trigger)(const char*, const char*), ssize_t standard, const char* alternatives, ...);
 
 /**
  * Creates, but does not add, a option that takes one argument per use
@@ -250,7 +251,7 @@ args_Option args_new_argumentless(void (*trigger)(char*, char*), ssize_t standar
  * @param   alternatives...  The alternative names, end with `null`
  * @return                   The created option
  */
-args_Option args_new_argumented(void (*trigger)(char*, char*, char*), const char* argument, ssize_t standard, const char* alternatives, ...);
+args_Option args_new_argumented(void (*trigger)(const char*, const char*, char*), const char* argument, ssize_t standard, const char* alternatives, ...);
 
 /**
  * Creates, but does not add, a option that optionally takes one argument per use
@@ -262,7 +263,7 @@ args_Option args_new_argumented(void (*trigger)(char*, char*, char*), const char
  * @param   alternatives...  The alternative names, end with `null`
  * @return                   The created option
  */
-args_Option args_new_optargumented(long (*stickless)(char*), void (*trigger)(char*, char*, char*), const char* argument, ssize_t standard, const char* alternatives, ...);
+args_Option args_new_optargumented(int (*stickless)(const char*), void (*trigger)(const char*, const char*, char*), const char* argument, ssize_t standard, const char* alternatives, ...);
 
 /**
  * Creates, but does not add, a option that takes all following arguments
@@ -273,7 +274,7 @@ args_Option args_new_optargumented(long (*stickless)(char*), void (*trigger)(cha
  * @param   alternatives...  The alternative names, end with `null`
  * @return                   The created option
  */
-args_Option args_new_variadic(void (*trigger)(char*, char*), const char* argument, ssize_t standard, const char* alternatives, ...);
+args_Option args_new_variadic(void (*trigger)(const char*, const char*), const char* argument, ssize_t standard, const char* alternatives, ...);
 
 
 /**
@@ -359,9 +360,9 @@ void args_optmap_triggerv(const char* name, char* value);
  * 
  * @param   name      The option's alternative name
  * @param   argument  The argument
- * @return            TODO
+ * @return            Whether the argument can be used wihout being sticky
  */
-long args_optmap_stickless(const char* name, char* argument);
+int args_optmap_stickless(const char* name, char* argument);
 
 /**
  * Gets the help text for a option with a specific index
@@ -377,7 +378,7 @@ const char* args_options_get_help(size_t index) __attribute__((pure));
  * 
  * @return  The available options
  */
-char** args_get_opts(void) __attribute__((pure));
+const char** args_get_opts(void) __attribute__((pure));
 
 /**
  * Gets the number of available options
@@ -462,7 +463,7 @@ int args_opts_used(const char* name) __attribute__((pure));
  * 
  * @return  All alternativ names that exists for all options
  */
-char** args_get_optmap(void) __attribute__((pure));
+const char** args_get_optmap(void) __attribute__((pure));
 
 /**
  * Gets the number of elements returned by `args_get_optmap`

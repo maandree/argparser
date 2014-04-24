@@ -31,20 +31,20 @@
 #define VARIADIC      3
 
 /* Prototype for static functions */
-static char* args__abbreviations(char* argument);
-static void _sort(char** list, size_t count, char** temp);
-static void sort(char** list, size_t count);
+static const char* args__abbreviations(const char* argument);
+static void _sort(const char** list, size_t count, const char** temp);
+static void sort(const char** list, size_t count);
 static void _sort_ptr(void** list, size_t count, void** temp);
 static void sort_ptr(void** list, size_t count);
-static long cmp(char* a, char* b);
+static int cmp(const char* a, const char* b);
 static void map_init(args_Map* map);
 static void* map_get(args_Map* map, const char* key);
 static void map_put(args_Map* map, const char* key, void* value);
 static void _map_free(void** level, int has_value);
 static void** map_free(args_Map* map);
-static void noop_2(char* used, char* std);
-static void noop_3(char* used, char* std, char* value);
-static long default_stickless(char* argument);
+static void noop_2(const char* used, const char* std);
+static void noop_3(const char* used, const char* std, char* value);
+static int default_stickless(const char* argument);
 
 
 /**
@@ -56,11 +56,6 @@ static int args_linuxvt;
  * Whether to use single dash/plus long options
  */
 static int args_alternative;
-
-/**
- * Whether to free the member of `args_program`
- */
-static int args_program_dispose;
 
 /**
  * Queue of objects that needs to be freed on dispose
@@ -138,13 +133,9 @@ void args_init(const char* description, const char* usage, const char* longdescr
 	    if (*(term + 4) == 'x')
 	      if (*(term + 5) == 0)
 		args_linuxvt = 1;
-  args_program_dispose = program == null;
-  args_program = program == null ? args_parent_name(0) : program;
+  args_program = program == null ? args_parent_name(0) : strdup(program);
   if (args_program == null)
-    {
-      args_program = "?";
-      args_program_dispose = false;
-    }
+    args_program = strdup("?");
   args_description = description;
   args_usage = usage;
   args_longdescription = longdescription;
@@ -174,7 +165,7 @@ void args_dispose(void)
     free(args_files);
   if (args_message != null)
     free(args_message);
-  if (args_program_dispose)
+  if (args_program != null)
     free(args_program);
   if (args_options != null)
     {
@@ -186,7 +177,7 @@ void args_dispose(void)
   
   args_files = null;
   args_message = null;
-  args_program_dispose = false;
+  args_program = null;
   args_options = null;
   
   if (args_freequeue != null)
@@ -262,7 +253,7 @@ const char* args_standard_abbreviations(const char* argument, const char** optio
  * @param   argument  The option that is not recognised
  * @return            The only alternative, or `null`
  */
-char* args__abbreviations(char* argument)
+const char* args__abbreviations(const char* argument)
 {
   if (args_abbreviations == null)
     return null;
@@ -278,7 +269,7 @@ char* args__abbreviations(char* argument)
  * @param   alternatives...  The alternative names, end with `null`
  * @return                   The created option
  */
-args_Option args_new_argumentless(void (*trigger)(char*, char*), ssize_t standard, const char* alternatives, ...)
+args_Option args_new_argumentless(void (*trigger)(const char*, const char*), ssize_t standard, const char* alternatives, ...)
 {
   size_t count = 1;
   args_Option rc;
@@ -318,7 +309,7 @@ args_Option args_new_argumentless(void (*trigger)(char*, char*), ssize_t standar
  * @param   alternatives...  The alternative names, end with `null`
  * @return                   The created option
  */
-args_Option args_new_argumented(void (*trigger)(char*, char*, char*), const char* argument, ssize_t standard, const char* alternatives, ...)
+args_Option args_new_argumented(void (*trigger)(const char*, const char*, char*), const char* argument, ssize_t standard, const char* alternatives, ...)
 {
   size_t count = 1;
   args_Option rc;
@@ -359,7 +350,7 @@ args_Option args_new_argumented(void (*trigger)(char*, char*, char*), const char
  * @param   alternatives...  The alternative names, end with `null`
  * @return                   The created option
  */
-args_Option args_new_optargumented(long (*stickless)(char*), void (*trigger)(char*, char*, char*), const char* argument, ssize_t standard, const char* alternatives, ...)
+args_Option args_new_optargumented(int (*stickless)(const char*), void (*trigger)(const char*, const char*, char*), const char* argument, ssize_t standard, const char* alternatives, ...)
 {
   size_t count = 1;
   args_Option rc;
@@ -400,7 +391,7 @@ args_Option args_new_optargumented(long (*stickless)(char*), void (*trigger)(cha
  * @param   alternatives...  The alternative names, end with `null`
  * @return                   The created option
  */
-args_Option args_new_variadic(void (*trigger)(char*, char*), const char* argument, ssize_t standard, const char* alternatives, ...)
+args_Option args_new_variadic(void (*trigger)(const char*, const char*), const char* argument, ssize_t standard, const char* alternatives, ...)
 {
   size_t count = 1;
   args_Option rc;
@@ -535,7 +526,7 @@ const char* args_options_get_help(size_t index)
  * 
  * @return  The available options
  */
-char** args_get_opts(void)
+const char** args_get_opts(void)
 {
   return args_opts.keys;
 }
@@ -699,7 +690,7 @@ int args_opts_used(const char* name)
  * 
  * @return  All alternativ names that exists for all options
  */
-char** args_get_optmap(void)
+const char** args_get_optmap(void)
 {
   return args_optmap.keys;
 }
@@ -744,7 +735,8 @@ args_Option args_optmap_get(const char* name)
  */
 ssize_t args_optmap_get_index(const char* name)
 {
-  return (ssize_t)(map_get(&args_optmap, name)) - 1;
+  void* ret = map_get(&args_optmap, name);
+  return ((ssize_t)ret) - 1;
 }
 
 /**
@@ -812,9 +804,9 @@ void args_optmap_triggerv(const char* name, char* value)
  * 
  * @param   name      The option's alternative name
  * @param   argument  The argument
- * @return            TODO
+ * @return            Whether the argument can be used wihout being sticky
  */
-long args_optmap_stickless(const char* name, char* argument)
+int args_optmap_stickless(const char* name, char* argument)
 {
   return (args_options + args_optmap_get_index(name))->stickless(argument);
 }
@@ -992,24 +984,23 @@ int args_test_files(size_t min, size_t max)
  */
 int args_test_allowed(const char** allowed, size_t allowed_count)
 {
-  char** opts;
-  char** a;
-  char** o;
-  long rc = true, _a, _o;
+  const char** opts;
+  const char** a;
+  size_t _a, _o, i;
+  int rc = true;
   
   sort(allowed, _a = allowed_count);
   opts = args_get_opts();
   sort(opts, _o = args_get_opts_count());
   
   a = allowed + _a;
-  o = opts + _o;
   
-  while (opts != o)
+  for (i = 0; i < _o; i++, opts++)
     {
       if ((allowed == a) || (cmp(*opts, *allowed) < 0))
 	if (args_opts_used(*opts))
 	  {
-	    char* std = args_optmap_get_standard(*opts);
+	    const char* std = args_optmap_get_standard(*opts);
 	    fprintf(args_out, "%s: option used out of context: %s", args_program, *opts);
 	    if (cmp(std, *opts) != 0)
 	      fprintf(args_out, "(%s)", std);
@@ -1018,7 +1009,6 @@ int args_test_allowed(const char** allowed, size_t allowed_count)
 	  }
       while ((allowed != a) && (cmp(*opts, *allowed) > 0))
 	allowed++;
-      opts++;
     }
   
   return rc;
@@ -1034,13 +1024,13 @@ int args_test_allowed(const char** allowed, size_t allowed_count)
  */
 int args_test_exclusiveness(const char** exclusives, size_t exclusives_count)
 {
-  long used_ptr = 0, i = 0;
-  char** used = (char**)malloc(args_get_opts_count() * sizeof(char*));
-  char** e;
-  char** o;
-  char** opts;
-  char* std;
-  long _e, _o;
+  size_t used_ptr = 0, i = 0;
+  const char** used = (const char**)malloc(args_get_opts_count() * sizeof(const char*));
+  const char** e;
+  const char** o;
+  const char** opts;
+  const char* std;
+  size_t _e, _o;
   
   sort(exclusives, _e = exclusives_count);
   opts = args_get_opts();
@@ -1086,14 +1076,14 @@ int args_test_exclusiveness(const char** exclusives, size_t exclusives_count)
  */
 void args_support_alternatives(void)
 {
-  char** opts = args_get_optmap();
-  long n = args_get_optmap_count();
-  long i;
+  const char** opts = args_get_optmap();
+  size_t n = args_get_optmap_count();
+  size_t i;
   
   for (i = 0; i < n; i++)
     {
-      char* alt = *(opts + i);
-      char* std = args_optmap_get_standard(alt);
+      const char* alt = *(opts + i);
+      const char* std = args_optmap_get_standard(alt);
       args_Array* value_std = (args_Array*)map_get(&args_opts, std);
       args_Array* value_alt;
       
@@ -1112,11 +1102,11 @@ void args_support_alternatives(void)
  */
 void args_help(long use_colours)
 {
-  long maxfirstlen = 0, count = 0, copts = args_get_options_count();
+  size_t maxfirstlen = 0, count = 0, copts = args_get_options_count();
   const char* dash = args_linuxvt ? "-" : "—";
   char* empty;
   char** lines;
-  long* lens;
+  size_t* lens;
   
   if ((use_colours != 0) && (use_colours != 1))
     use_colours = isatty(args_out_fd);
@@ -1128,13 +1118,13 @@ void args_help(long use_colours)
   
   if (args_usage != null)
     {
-      long n = 0, lines = 0, i = 0;
+      size_t n = 0, lines_n = 0, i = 0;
       char* buf;
       fprintf(args_out, use_colours ? "\033[01mUSAGE:\033[21m\n" : "USAGE:\n");
       while (*(args_usage + n))
 	if (*(args_usage + n++) == '\n')
-	  lines++;
-      buf = (char*)malloc((n + 2 + lines * 7) * sizeof(char));
+	  lines_n++;
+      buf = (char*)malloc((n + 2 + lines_n * 7) * sizeof(char));
       *buf++ = '\t';
       while (i < n)
 	{
@@ -1151,21 +1141,21 @@ void args_help(long use_colours)
 	    }
 	}
       *buf++ = 0;
-      buf -= n + 2 + lines * 7;
+      buf -= n + 2 + lines_n * 7;
       fprintf(args_out, "%s\n\n", buf);
       free(buf);
     }
   
   {
-    long i = 0;
+    size_t i = 0;
     for (i = 0; i < copts; i++)
       {
 	if (args_options_get_help(i) == null)
 	  continue;
 	if (args_options_get_alternatives_count(i) > 1)
 	  {
-	    long n = 0;
-	    char* first = *(args_options_get_alternatives(i));
+	    size_t n = 0;
+	    const char* first = *(args_options_get_alternatives(i));
 	    while (*(first + n))
 	      n++;
 	    if (maxfirstlen < n)
@@ -1176,7 +1166,7 @@ void args_help(long use_colours)
   
   empty = (char*)malloc((maxfirstlen + 1) * sizeof(char));
   {
-    long i;
+    size_t i;
     for (i = 0; i < maxfirstlen; i++)
       *(empty + i) = ' ';
     *(empty + maxfirstlen) = 0;
@@ -1184,16 +1174,17 @@ void args_help(long use_colours)
   
   fprintf(args_out, use_colours ? "\033[01mSYNOPSIS:\033[21m\n" : "SYNOPSIS:\n");
   lines = (char**)malloc(copts * sizeof(char*));
-  lens = (long*)malloc(copts * sizeof(long));
+  lens = (size_t*)malloc(copts * sizeof(size_t));
   {
     char* first_extra = null;
-    size_t index = 0, i = 0, n, m, l, j, type;
+    size_t index = 0, i = 0, n, m, l, j;
+    int type;
     for (i = 0; i < copts; i++)
       {
-	char* first;
-	char* last;
+	const char* first;
+	const char* last;
 	char* line;
-	char* arg;
+	const char* arg;
 	if (args_options_get_help(i) == null)
 	  continue;
 	arg = args_options_get_argument(i);
@@ -1282,7 +1273,7 @@ void args_help(long use_colours)
   free(empty);
   
   {
-    long col = 0, i = 0, index = 0;
+    size_t col = 0, i = 0, index = 0;
     for (; i < count; i++)
       if (col < *(lens + i))
 	col = *(lens + i);
@@ -1294,7 +1285,8 @@ void args_help(long use_colours)
     *(empty + col) = 0;
     for (i = 0; i < copts; i++)
       {
-	long first = true, j = 0, jptr = 1;
+	int first = true;
+	size_t j = 0, jptr = 1;
 	const char* colour = (index & 1) == 0 ? "36" : "34";
 	const char* help = args_options_get_help(i);
 	char* line;
@@ -1354,7 +1346,8 @@ void args_help(long use_colours)
 int args_parse(int argc, char** argv)
 {
   char** argend = argv + argc;
-  long dashed = false, tmpdashed = false, get = 0, dontget = 0, rc = true;
+  int dashed = false, tmpdashed = false, rc = true;
+  size_t get = 0, dontget = 0;
   size_t argptr = 0, optptr = 0, queuesize = (size_t)argc - 1;
   char* injection = null;
   char** argqueue;
@@ -1465,13 +1458,14 @@ int args_parse(int argc, char** argv)
 		  {
 		    if ((injection = args__abbreviations(arg_opt)))
 		      {
-			size_t n = 1, i, j = 0;
+			size_t n = 1, j = 0;
 			char* _injection;
 			for (i = 0; *(injection + i); i++)
 			  n++;
 			for (i = eq + 1; *(arg + i); i++)
 			  n++;
-			*(args_freequeue + args_freeptr++) = _injection = (char*)malloc((n + 1) * sizeof(char));
+			_injection = (char*)malloc((n + 1) * sizeof(char));
+			*(args_freequeue + args_freeptr++) = _injection;
 			for (i = 0; *(injection + i); i++)
 			  *(_injection + j++) = *(injection + i);
 			*((injection = _injection) + j++) = '=';
@@ -1511,7 +1505,7 @@ int args_parse(int argc, char** argv)
 	else
 	  {
 	    char sign = *arg;
-	    long i = 1;
+	    size_t i = 1;
 	    while (*(arg + i))
 	      {
 		char* narg = (char*)malloc(3 * sizeof(char));
@@ -1566,7 +1560,7 @@ int args_parse(int argc, char** argv)
     size_t i = 0;
     while (i < optptr)
       {
-	char* opt = args_optmap_get_standard(*(optqueue + i));
+	const char* opt = args_optmap_get_standard(*(optqueue + i));
 	char* arg = argptr > i ? *(argqueue + i) : null;
 	if (argptr <= i)
 	  args_optmap_triggerv(*(optqueue + i), null);
@@ -1583,7 +1577,7 @@ int args_parse(int argc, char** argv)
     for (; i < n; i++)
       if (args_options_get_type(i) == VARIADIC)
 	{
-	  char* std = args_options_get_standard(i);
+	  const char* std = args_options_get_standard(i);
 	  if (args_opts_used(std))
 	    {
 	      if (*(args_opts_get(std)) == null)
@@ -1638,9 +1632,9 @@ int args_parse(int argc, char** argv)
  * 
  * @param   a  -1 if returned if this sting is the alphabetically lesser one
  * @param   b   1 if returned if this sting is the alphabetically lesser one
- * @return     0 is returned if the two string are identical, other -1 or 1 is returned
+ * @return      0 is returned if the two string are identical, other -1 or 1 is returned
  */
-static long cmp(char* a, char* b)
+static int cmp(const char* a, const char* b)
 {
   char c;
   while (*a && *b)
@@ -1660,7 +1654,7 @@ static long cmp(char* a, char* b)
  * @param  count  The number of elements to sort
  * @param  temp   Auxiliary memory
  */
-static void _sort(char** list, size_t count, char** temp)
+static void _sort(const char** list, size_t count, const char** temp)
 {
   if (count > 1)
     {
@@ -1671,7 +1665,7 @@ static void _sort(char** list, size_t count, char** temp)
       b += a;
       while ((i < a) && (j < b))
 	{
-          char c = cmp(*(temp + i), *(temp + j));
+          int c = cmp(*(temp + i), *(temp + j));
           if (c <= 0)
             *list++ = *(temp + i++);
           else
@@ -1695,9 +1689,9 @@ static void _sort(char** list, size_t count, char** temp)
  * @param  list   The list to sort
  * @param  count  The number of elements to sort
  */
-static void sort(char** list, size_t count)
+static void sort(const char** list, size_t count)
 {
-  char** temp = (char**)malloc(count * sizeof(char*));
+  const char** temp = (const char**)malloc(count * sizeof(const char*));
   _sort(list, count, temp);
   free(temp);
 }
@@ -1758,7 +1752,7 @@ static void sort_ptr(void** list, size_t count)
  */
 static void map_init(args_Map* map)
 {
-  long i;
+  size_t i;
   void** level;
   map->keys = null;
   map->key_count = 0;
@@ -1803,14 +1797,14 @@ static void* map_get(args_Map* map, const char* key)
  */
 static void map_put(args_Map* map, const char* key, void* value)
 {
-  char* _key = key;
-  long new = false;
+  const char* _key = key;
+  int new = false;
   void** at = map->data;
-  long i;
+  size_t i;
   while (*key)
     {
-      long a = (long)((*key >> 4) & 15);
-      long b = (long)(*key & 15);
+      size_t a = (size_t)((*key >> 4) & 15);
+      size_t b = (size_t)((*key >> 0) & 15);
       if (*(at + a))
 	at = (void**)*(at + a);
       else
@@ -1834,7 +1828,7 @@ static void map_put(args_Map* map, const char* key, void* value)
   *(at + 16) = value;
   if (new)
     {
-      map->keys = (char**)realloc(map->keys, (map->key_count + 1) * sizeof(char*));
+      map->keys = (const char**)realloc(map->keys, (map->key_count + 1) * sizeof(const char*));
       *(map->keys + map->key_count++) = _key;
     }
 }
@@ -1893,7 +1887,7 @@ static void** map_free(args_Map* map)
  * @param  used  The used option alternative
  * @param  std   The standard option alternative
  */
-static void noop_2(char* used, char* std)
+static void noop_2(const char* used, const char* std)
 {
   (void) used;
   (void) std;
@@ -1906,7 +1900,7 @@ static void noop_2(char* used, char* std)
  * @param  std    The standard option alternative
  * @param  value  The used value
  */
-static void noop_3(char* used, char* std, char* value)
+static void noop_3(const char* used, const char* std, char* value)
 {
   (void) used;
   (void) std;
@@ -1919,7 +1913,7 @@ static void noop_3(char* used, char* std, char* value)
  * @param   The argument
  * @return  Whether the argument can be used without being sticky
  */
-static long default_stickless(char* argument)
+static int default_stickless(const char* argument)
 {
   return (*argument != '-') && (*argument != '+');
 }
