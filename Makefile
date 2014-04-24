@@ -27,6 +27,20 @@ JAVA_OPTIMISE = -O
 JAVAC = javac
 
 
+WARN = -Wall -Wextra -pedantic -Wdouble-promotion -Wformat=2 -Winit-self -Wmissing-include-dirs  \
+       -Wtrampolines -Wfloat-equal -Wshadow -Wmissing-prototypes -Wmissing-declarations          \
+       -Wredundant-decls -Wnested-externs -Winline -Wno-variadic-macros -Wsync-nand              \
+       -Wunsafe-loop-optimizations -Wcast-align -Wstrict-overflow -Wdeclaration-after-statement  \
+       -Wundef -Wbad-function-cast -Wcast-qual -Wwrite-strings -Wlogical-op -Waggregate-return   \
+       -Wstrict-prototypes -Wold-style-definition -Wpacked -Wvector-operation-performance        \
+       -Wunsuffixed-float-constants -Wsuggest-attribute=const -Wsuggest-attribute=noreturn       \
+       -Wsuggest-attribute=pure -Wsuggest-attribute=format -Wnormalized=nfkc -Wconversion        \
+       -fstrict-aliasing -fstrict-overflow -fipa-pure-const -ftree-vrp -fstack-usage             \
+       -funsafe-loop-optimizations
+
+
+
+
 
 .PHONY: all
 all: python bash java c doc
@@ -67,9 +81,9 @@ bin/ArgParser.jar: src/argparser/ArgParser.java
 c: bin/argparser.so
 bin/argparser.so: src/argparser.c src/argparser.h
 	@mkdir -p bin
-	$(CC) $(C_OPTIMISE) -std=gnu99 -Wall -Wextra -pedantic -fPIC -c src/argparser.c -o bin/argparser.o
-	$(CC) $(C_OPTIMISE) -std=gnu99 -Wall -Wextra -pedantic -shared bin/argparser.o -o bin/argparser.so
-	$(CC) $(C_OPTIMISE) -std=gnu99 -Wall -Wextra -pedantic src/test.c bin/argparser.o -o bin/test
+	$(CC) $(C_OPTIMISE) -std=gnu99 $(WARN) -fPIC -c src/argparser.c -o bin/argparser.o
+	$(CC) $(C_OPTIMISE) -std=gnu99 $(WARN) -shared bin/argparser.o -o bin/argparser.so
+	$(CC) $(C_OPTIMISE) -std=gnu99 $(WARN) src/test.c bin/argparser.o -o bin/test
 
 
 
