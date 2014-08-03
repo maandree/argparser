@@ -179,7 +179,7 @@ size_t args_arguments_count;
 size_t args_unrecognised_count;
 
 /**
- * The concatination of `files` with blankspaces as delimiters, `null` if no files
+ * The concatenation of `files` with blankspaces as delimiters, `null` if no files
  */
 char* args_message;
 
