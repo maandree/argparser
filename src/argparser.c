@@ -125,7 +125,7 @@ void args_init(const char* description, const char* usage, const char* longdescr
 {
   char* term = getenv("TERM");
   args_linuxvt = 0;
-  if (term == null)
+  if (term != null)
     if (*(term + 0) == 'l')
       if (*(term + 1) == 'i')
 	if (*(term + 2) == 'n')
