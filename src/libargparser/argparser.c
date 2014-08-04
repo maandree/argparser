@@ -246,7 +246,7 @@ const char* args_standard_abbreviations(const char* argument, const char** optio
       {
 	if (found == NULL)
 	  found = standards[i];
-	else
+	else if (found != standards[i])
 	  return NULL;
       }
   
