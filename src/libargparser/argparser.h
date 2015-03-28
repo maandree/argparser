@@ -126,6 +126,16 @@ typedef struct args_option
   void* user_data;
   
   /**
+   * Arguments passed to the option, `NULL` when argumentless
+   */
+  char** arguments;
+  
+  /**
+   * The number of elements in `arguments`
+   */
+  size_t arguments_count;
+  
+  /**
    * Invoked when the option is used
    * 
    * @param  user_data  User-data
@@ -350,7 +360,15 @@ int args_initialise(args_parser_t* parser);
  * 
  * @param  parser  The parser
  */
-void args_dispose(parser_t* parser);
+void args_dispose(args_parser_t* parser);
+
+/**
+ * Maps up options that are alternatives to the standard alternative for each option
+ * 
+ * @param   parser  The parser
+ * @return          Zero on success, -1 on error
+ */
+int args_support_alternatives(args_parser_t* parser);
 
 /**
  * Checks the correctness of the number of used non-option arguments
@@ -379,6 +397,44 @@ int args_test_files_max(args_parser_t* parser, size_t max);
  * @return          Whether the usage was correct
  */
 int args_test_files(args_parser_t* parser, size_t min, size_t max);
+
+/**
+ * Checks for out of context option usage
+ * 
+ * @param   parser           The parser
+ * @param   ...:const char*  Allowed options
+ * @return                   Whether only allowed options was used, -1 on error
+ */
+int args_test_allowed(args_parser_t* parser, ...);
+
+/**
+ * Checks for out of context option usage
+ * 
+ * @param   parser   The parser
+ * @param   allowed  Allowed options
+ * @param   count    The number of elements in `allowed`
+ * @return           Whether only allowed options was used
+ */
+int args_test_allowed_l(args_parser_t* parser, const char** allowed, size_t count) ARGS_PURE;
+
+/**
+ * Checks for option conflicts
+ * 
+ * @param   parser           The parser
+ * @param   ...:const char*  Mutually exclusive options
+ * @return                   Whether at most one exclusive option was used, -1 on error
+ */
+int args_test_exclusiveness(args_parser_t* parser, ...);
+
+/**
+ * Checks for option conflicts
+ * 
+ * @param   parser      The parser
+ * @param   exclusives  Mutually exclusive options
+ * @param   count       The number of elements in `exclusives`
+ * @return              Whether at most one exclusive option was used
+ */
+int args_test_exclusiveness_l(args_parser_t* parser, const char** exclusives, size_t count) ARGS_PURE;
 
 /**
  * Dummy trigger
