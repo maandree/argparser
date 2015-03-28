@@ -1636,7 +1636,7 @@ int args_parse(int argc, char** argv)
  */
 static int cmp(const char* a, const char* b)
 {
-  char c;
+  int c;
   while (*a && *b)
     {
       if ((c = (*a < *b ? -1 : (*a > *b ? 1 : 0))))
