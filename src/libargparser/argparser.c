@@ -191,19 +191,24 @@ int args_test_allowed(args_parser_t* parser, ...)
   va_list args, cp;
   const char** list;
   const char* elem;
-  int rc;
+  int rc, saved_errno;
+  
+  va_start(args, parser);
   
   va_copy(cp, args);
-  va_start(cp, parser);
   while (va_arg(cp, const char*) != NULL)
     count++;
   va_end(cp);
   
   if ((list = malloc(count * sizeof(const char*))) == NULL)
-    return -1;
+    {
+      saved_errno = errno;
+      va_end(args);
+      errno = saved_errno;
+      return -1;
+    }
   
   count = 0;
-  va_start(args, parser);
   while ((elem = va_arg(args, const char*)) != NULL)
     list[count++] = elem;
   va_end(args);
@@ -257,19 +262,24 @@ int args_test_exclusiveness(args_parser_t* parser, ...)
   va_list args, cp;
   const char** list;
   const char* elem;
-  int rc;
+  int rc, saved_errno;
+  
+  va_start(args, parser);
   
   va_copy(cp, args);
-  va_start(cp, parser);
   while (va_arg(cp, const char*) != NULL)
     count++;
   va_end(cp);
   
   if ((list = malloc(count * sizeof(const char*))) == NULL)
-    return -1;
+    {
+      saved_errno = errno;
+      va_end(args);
+      errno = saved_errno;
+      return -1;
+    }
   
   count = 0;
-  va_start(args, parser);
   while ((elem = va_arg(args, const char*)) != NULL)
     list[count++] = elem;
   va_end(args);

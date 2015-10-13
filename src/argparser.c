@@ -276,8 +276,9 @@ args_Option args_new_argumentless(void (*trigger)(const char*, const char*), ssi
   va_list args, cp;
   size_t i;
   
+  va_start(args, alternatives);
+  
   va_copy(cp, args); /* va_copy(dest, src) */
-  va_start(cp, alternatives);
   while (va_arg(cp, char*) != null)
     count++;
   va_end(cp);
@@ -289,7 +290,6 @@ args_Option args_new_argumentless(void (*trigger)(const char*, const char*), ssi
   rc.trigger = trigger == null ? noop_2 : trigger;
   
   rc.alternatives = (const char**)malloc(count * sizeof(const char*));
-  va_start(args, alternatives);
   *(rc.alternatives) = alternatives;
   for (i = 1; i < count; i++)
     *(rc.alternatives + i) = va_arg(args, const char*);
@@ -316,8 +316,9 @@ args_Option args_new_argumented(void (*trigger)(const char*, const char*, char*)
   va_list args, cp;
   size_t i;
   
+  va_start(args, alternatives);
+  
   va_copy(cp, args); /* va_copy(dest, src) */
-  va_start(cp, alternatives);
   while (va_arg(cp, char*) != null)
     count++;
   va_end(cp);
@@ -329,7 +330,6 @@ args_Option args_new_argumented(void (*trigger)(const char*, const char*, char*)
   rc.triggerv = trigger == null ? noop_3 : trigger;
   
   rc.alternatives = (const char**)malloc(count * sizeof(const char*));
-  va_start(args, alternatives);
   *(rc.alternatives) = alternatives;
   for (i = 1; i < count; i++)
     *(rc.alternatives + i) = va_arg(args, const char*);
@@ -357,8 +357,9 @@ args_Option args_new_optargumented(int (*stickless)(const char*), void (*trigger
   va_list args, cp;
   size_t i;
   
+  va_start(args, alternatives);
+  
   va_copy(cp, args); /* va_copy(dest, src) */
-  va_start(cp, alternatives);
   while (va_arg(cp, char*) != null)
     count++;
   va_end(cp);
@@ -371,7 +372,6 @@ args_Option args_new_optargumented(int (*stickless)(const char*), void (*trigger
   rc.stickless = stickless == null ? default_stickless : stickless;
   
   rc.alternatives = (const char**)malloc(count * sizeof(const char*));
-  va_start(args, alternatives);
   *(rc.alternatives) = alternatives;
   for (i = 1; i < count; i++)
     *(rc.alternatives + i) = va_arg(args, const char*);
@@ -398,8 +398,9 @@ args_Option args_new_variadic(void (*trigger)(const char*, const char*), const c
   va_list args, cp;
   size_t i;
   
+  va_start(args, alternatives);
+  
   va_copy(cp, args); /* va_copy(dest, src) */
-  va_start(cp, alternatives);
   while (va_arg(cp, char*) != null)
     count++;
   va_end(cp);
@@ -411,7 +412,6 @@ args_Option args_new_variadic(void (*trigger)(const char*, const char*), const c
   rc.trigger = trigger == null ? noop_2 : trigger;
   
   rc.alternatives = (const char**)malloc(count * sizeof(const char*));
-  va_start(args, alternatives);
   *(rc.alternatives) = alternatives;
   for (i = 1; i < count; i++)
     *(rc.alternatives + i) = va_arg(args, const char*);
