@@ -1,6 +1,21 @@
-Command line option parser library for multiple languages
-with the capability of both - and + short options and
-both -- and ++ long options. It supports variadic options,
-colours, --, temporary -- using ++, stickness configurable
-optionally argumented options, and configurable abbreviations
-that can be used to typo correction if you so wish.
+NAME
+	argparser - Command line argument parser library
+
+DESCRIPTION
+	Command line parser library with support for
+	*	coloured help output,
+	*	long options,
+	*	single dash long options,
+	*	plus options,
+	*	temporary -- using ++,
+	*	variadic options,
+	*	optionally argumented options, and
+	*	abbreviations, and other user-defined corrections.
+
+RATIONALE
+	We should always strive to make the command line
+	even better.
+
+SEE ALSO
+	getopt(1), getopt(3), getopts(1), info argp
+
